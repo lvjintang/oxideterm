@@ -192,22 +192,22 @@ impl McpRegistry {
         self.disconnect(server_id).await;
     }
 
-    pub fn has_auth_token(&self, server_id: &str) -> bool {
-        self.key_store.has_provider_key(&format!("mcp:{server_id}"))
+    pub fn has_auth_token(&self, config: &McpServerConfig) -> bool {
+        self.key_store.has_provider_key(&mcp_auth_token_key(config))
     }
 
     pub fn store_auth_token(
         &self,
-        server_id: &str,
+        config: &McpServerConfig,
         token: Zeroizing<String>,
     ) -> anyhow::Result<()> {
         self.key_store
-            .store_provider_key(&format!("mcp:{server_id}"), token)
+            .store_provider_key(&mcp_auth_token_key(config), token)
     }
 
-    pub fn delete_auth_token(&self, server_id: &str) -> anyhow::Result<()> {
+    pub fn delete_auth_token(&self, config: &McpServerConfig) -> anyhow::Result<()> {
         self.key_store
-            .delete_provider_key(&format!("mcp:{server_id}"))
+            .delete_provider_key(&mcp_auth_token_key(config))
     }
 
     pub async fn call_prefixed_tool(

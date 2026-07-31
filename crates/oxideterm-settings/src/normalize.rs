@@ -4,6 +4,7 @@
 use anyhow::{Context, Result};
 use serde_json::{Map, Value, json};
 use std::time::{SystemTime, UNIX_EPOCH};
+use zeroize::Zeroize;
 
 use crate::model::*;
 
@@ -60,6 +61,38 @@ fn normalize_sftp_speed_limit_key(settings: &mut Value, raw: &Value) {
     // Keep the Tauri spelling canonical while still accepting older native
     // files that used serde's plain camelCase acronym handling.
     sftp.insert("speedLimitKBps".to_string(), value);
+}
+
+fn remove_legacy_mcp_auth_tokens(settings: &mut Value, warnings: &mut Vec<String>) {
+    let Some(servers) = settings
+        .get_mut("ai")
+        .and_then(|ai| ai.get_mut("mcpServers"))
+        .and_then(Value::as_array_mut)
+    else {
+        return;
+    };
+
+    for server in servers {
+        let Some(server) = server.as_object_mut() else {
+            continue;
+        };
+        let mut removed = false;
+        for key in ["authToken", "auth_token"] {
+            if let Some(Value::String(mut token)) = server.remove(key) {
+                // Settings are not a secret store. Wipe the legacy allocation
+                // before dropping it instead of retaining plaintext until a
+                // later serialization cycle.
+                token.zeroize();
+                removed = true;
+            }
+        }
+        if removed {
+            warnings.push(
+                "Removed a legacy MCP auth token from settings; re-enter it to store it in the OS keychain."
+                    .to_string(),
+            );
+        }
+    }
 }
 
 fn now_ms() -> i64 {
@@ -571,6 +604,7 @@ pub fn sanitize_settings_value(raw: Value) -> Result<SanitizedSettings> {
     migrate_ai_tool_use_settings(&mut settings, &raw);
     normalize_ai_tool_auto_approve_keys(&mut settings, &raw);
     migrate_ai_memory_entries(&mut settings);
+    remove_legacy_mcp_auth_tokens(&mut settings, &mut migration_warnings);
     migrate_acp_agent_presets(&mut settings, &mut migration_warnings);
     migrate_ai_execution_profile_selection(&mut settings, &raw);
 
@@ -852,6 +886,31 @@ pub fn sanitize_settings_value(raw: Value) -> Result<SanitizedSettings> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_mcp_auth_token_is_removed_from_settings() {
+        let sanitized = sanitize_settings_value(json!({
+            "ai": {
+                "mcpServers": [{
+                    "id": "mcp-test",
+                    "name": "test",
+                    "transport": "streamableHttp",
+                    "url": "https://example.test/mcp",
+                    "authToken": "legacy-secret"
+                }]
+            }
+        }))
+        .expect("sanitize settings");
+
+        let server = &sanitized.settings.ai.mcp_servers[0];
+        assert!(server.get("authToken").is_none());
+        assert!(
+            !serde_json::to_string(server)
+                .expect("serialize server")
+                .contains("legacy-secret")
+        );
+        assert_eq!(sanitized.migration_warnings.len(), 1);
+    }
 
     #[test]
     fn legacy_ai_memory_migrates_once_to_an_itemized_entry() {

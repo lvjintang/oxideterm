@@ -756,20 +756,13 @@ impl McpRegistry {
         if config.auth_header_mode == Some(McpAuthHeaderMode::None) {
             return None;
         }
-        // Tauri stores MCP auth tokens in the same OS keychain namespace under
-        // `mcp:{id}` and only falls back to legacy config.authToken for
-        // migration. Keep both values out of Debug/log paths and return an
-        // owned Zeroizing clone with request-scoped lifetime.
+        // MCP auth is bound to the server's endpoint identity in the OS
+        // keychain. Do not fall back to legacy config.authToken: settings are
+        // not a secret store and a mutable server id must not redirect a token.
         self.key_store
-            .get_provider_key(&format!("mcp:{}", config.id))
+            .get_provider_key(&mcp_auth_token_key(config))
             .ok()
             .flatten()
-            .or_else(|| {
-                config
-                    .auth_token
-                    .as_ref()
-                    .map(|token| Zeroizing::new(token.clone()))
-            })
     }
 
     async fn discover_legacy_sse_endpoint(
