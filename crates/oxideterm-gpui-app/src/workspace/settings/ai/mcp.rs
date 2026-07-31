@@ -203,7 +203,7 @@ impl WorkspaceApp {
             None
         };
         let config_for_toggle = config.clone();
-        let remove_id = config.id.clone();
+        let remove_config = config.clone();
         let refresh_id = config.id.clone();
 
         let mut card = div()
@@ -285,7 +285,7 @@ impl WorkspaceApp {
                                 false,
                                 move |this, _event, _window, cx| {
                                     this.ai_entity.update(cx, |ai, cx| {
-                                        ai.remove_mcp_server(remove_id.clone(), cx);
+                                        ai.remove_mcp_server(remove_config.clone(), cx);
                                     });
                                     cx.stop_propagation();
                                 },

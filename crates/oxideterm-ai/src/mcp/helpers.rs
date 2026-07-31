@@ -612,9 +612,22 @@ fn current_generation(state: &McpRuntimeState, id: &str) -> u64 {
 
 fn validate_mcp_http_url(url: &str) -> Result<String, McpError> {
     let parsed = reqwest::Url::parse(url).map_err(|error| McpError::Message(error.to_string()))?;
-    if !matches!(parsed.scheme(), "http" | "https") {
+    if parsed.scheme() == "https" {
+        return Ok(parsed.to_string());
+    }
+    if parsed.scheme() != "http" {
         return Err(McpError::Message(
             "MCP HTTP only supports http/https URLs".to_string(),
+        ));
+    }
+    let host = parsed.host_str().unwrap_or_default();
+    let is_loopback = host.eq_ignore_ascii_case("localhost")
+        || host
+            .parse::<std::net::IpAddr>()
+            .is_ok_and(|address| address.is_loopback());
+    if !is_loopback {
+        return Err(McpError::Message(
+            "MCP servers outside loopback must use HTTPS".to_string(),
         ));
     }
     Ok(parsed.to_string())

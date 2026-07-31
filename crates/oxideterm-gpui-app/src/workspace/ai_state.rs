@@ -2451,22 +2451,32 @@ impl AiWorkspaceEntity {
         }
 
         let token = take_mcp_auth_token(&mut draft);
+        let config = mcp_server_config_from_draft(draft, server_id);
+        let Ok(keychain_config) =
+            serde_json::from_value::<oxideterm_ai::McpServerConfig>(config.clone())
+        else {
+            self.credential_intents
+                .push_back(AiCredentialIntent::Failed(
+                    AiCredentialFailure::SaveMcpToken,
+                ));
+            cx.emit(AiWorkspaceEvent::CredentialOperationReady);
+            cx.notify();
+            return;
+        };
         let registry = self.mcp_registry.clone();
         let task_runtime = self.task_runtime.clone();
-        let keychain_server_id = server_id.clone();
         let operation = async move {
             task_runtime
-                .spawn_blocking(move || registry.store_auth_token(&keychain_server_id, token))
+                .spawn_blocking(move || registry.store_auth_token(&keychain_config, token))
                 .await
                 .is_ok_and(|result| result.is_ok())
         };
-        self.start_mcp_token_save(draft, server_id, operation, cx);
+        self.start_mcp_token_save(config, operation, cx);
     }
 
     fn start_mcp_token_save(
         &mut self,
-        pending_draft: AiMcpServerDraft,
-        server_id: String,
+        config: serde_json::Value,
         operation: impl std::future::Future<Output = bool> + 'static,
         cx: &mut Context<Self>,
     ) {
@@ -2475,16 +2485,12 @@ impl AiWorkspaceEntity {
             let _ = entity.update(cx, |entity, cx| {
                 entity.mcp_save_task = None;
                 if stored {
-                    // Build the persisted value only after the keychain write
-                    // succeeds, avoiding an async second copy of env/header data.
-                    let config = mcp_server_config_from_draft(pending_draft, server_id);
                     entity
                         .credential_intents
                         .push_back(AiCredentialIntent::McpServerReady { config });
                 } else {
                     // The token was consumed by the failed keychain boundary;
-                    // restoring the remaining draft requires explicit re-entry.
-                    entity.mcp_add_dialog = Some(pending_draft);
+                    // explicit re-entry avoids retaining a second secret copy.
                     entity.mcp_dialog_presence.reopen();
                     entity
                         .credential_intents
@@ -2557,23 +2563,21 @@ impl AiWorkspaceEntity {
 
     pub(in crate::workspace) fn remove_mcp_server(
         &mut self,
-        server_id: String,
+        config: oxideterm_ai::McpServerConfig,
         cx: &mut Context<Self>,
     ) -> bool {
         let registry = self.mcp_registry.clone();
         let task_runtime = self.task_runtime.clone();
         self.start_mcp_runtime_task(
-            server_id.clone(),
+            config.id.clone(),
             async move {
-                registry.disconnect_server(&server_id).await;
+                registry.disconnect_server(&config.id).await;
                 let delete_registry = registry.clone();
-                let server_id_for_delete = server_id.clone();
+                let config_for_delete = config.clone();
                 let _ = task_runtime
-                    .spawn_blocking(move || {
-                        delete_registry.delete_auth_token(&server_id_for_delete)
-                    })
+                    .spawn_blocking(move || delete_registry.delete_auth_token(&config_for_delete))
                     .await;
-                Some(server_id)
+                Some(config.id)
             },
             cx,
         )
@@ -4702,7 +4706,7 @@ mod entity_tests {
     }
 
     #[gpui::test]
-    fn mcp_token_moves_once_and_failure_restores_only_non_token_draft(cx: &mut TestAppContext) {
+    fn mcp_token_moves_once_and_failure_does_not_restore_the_draft(cx: &mut TestAppContext) {
         let entity = cx.new(|cx| {
             AiWorkspaceEntity::new(test_runtime(), oxideterm_ai::AiProviderKeyStore::new(), cx)
         });
@@ -4717,8 +4721,7 @@ mod entity_tests {
 
         entity.update(cx, |entity, cx| {
             entity.start_mcp_token_save(
-                restore_draft,
-                "mcp-test".to_string(),
+                serde_json::json!({ "id": "mcp-test" }),
                 std::future::ready(false),
                 cx,
             );
@@ -4728,12 +4731,7 @@ mod entity_tests {
 
         entity.update(cx, |entity, _cx| {
             assert!(entity.mcp_save_task.is_none());
-            assert!(
-                entity
-                    .mcp_add_dialog
-                    .as_ref()
-                    .is_some_and(|draft| draft.auth_token.is_empty())
-            );
+            assert!(entity.mcp_add_dialog.is_none());
             let intent = entity
                 .take_credential_intents()
                 .pop_front()

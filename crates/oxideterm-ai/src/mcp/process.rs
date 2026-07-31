@@ -154,7 +154,10 @@ impl McpProcessRegistry {
                     line.clear();
                     match reader.read_line(&mut line).await {
                         Ok(0) | Err(_) => break,
-                        Ok(_) => tracing::debug!("[MCP:{sid}] stderr: {}", line.trim_end()),
+                        Ok(_) => tracing::debug!(
+                            "[MCP:{sid}] stderr received ({} bytes redacted)",
+                            line.len()
+                        ),
                     }
                 }
             })

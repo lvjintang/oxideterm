@@ -748,8 +748,23 @@ mod tests {
     #[test]
     fn validate_http_url_rejects_non_http_transports() {
         assert!(validate_mcp_http_url("http://localhost:3000").is_ok());
+        assert!(validate_mcp_http_url("http://127.0.0.1:3000").is_ok());
         assert!(validate_mcp_http_url("https://example.com/mcp").is_ok());
+        assert!(validate_mcp_http_url("http://example.com/mcp").is_err());
         assert!(validate_mcp_http_url("file:///tmp/mcp").is_err());
+    }
+
+    #[test]
+    fn mcp_auth_token_key_is_bound_to_the_endpoint_and_never_serialized() {
+        let mut config = http_test_config("mcp-test", McpTransport::StreamableHttp, "https://one.example/mcp");
+        config.auth_token = Some("legacy-secret".to_string());
+        let original_key = mcp_auth_token_key(&config);
+
+        config.url = Some("https://two.example/mcp".to_string());
+        assert_ne!(original_key, mcp_auth_token_key(&config));
+        assert!(!serde_json::to_string(&config)
+            .expect("serialize MCP config")
+            .contains("legacy-secret"));
     }
 
     #[test]

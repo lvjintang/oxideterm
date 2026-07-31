@@ -7,6 +7,7 @@ use std::{
     },
     time::Duration,
 };
+use sha2::{Digest, Sha256};
 
 use base64::Engine as _;
 use futures_util::{FutureExt as _, StreamExt as _, future::BoxFuture};
@@ -86,8 +87,34 @@ pub struct McpServerConfig {
     pub enabled: bool,
     #[serde(default)]
     pub retry_on_disconnect: bool,
-    #[serde(default)]
+    // Legacy settings may still contain this field. Tokens belong exclusively
+    // in the OS keychain and must never be serialized back to settings.
+    #[serde(default, skip_serializing)]
     pub auth_token: Option<String>,
+}
+
+fn mcp_auth_token_key(config: &McpServerConfig) -> String {
+    // Bind a token to the connection properties that determine where and how
+    // it is sent. A settings edit cannot reuse a server id to redirect a
+    // keychain token to another endpoint.
+    let mut hasher = Sha256::new();
+    hasher.update(config.id.as_bytes());
+    hasher.update([0]);
+    hasher.update(format!("{:?}", config.transport).as_bytes());
+    hasher.update([0]);
+    hasher.update(config.url.as_deref().unwrap_or_default().trim().as_bytes());
+    hasher.update([0]);
+    hasher.update(
+        config
+            .auth_header_name
+            .as_deref()
+            .unwrap_or("Authorization")
+            .trim()
+            .as_bytes(),
+    );
+    hasher.update([0]);
+    hasher.update(format!("{:?}", config.auth_header_mode.unwrap_or(McpAuthHeaderMode::Bearer)).as_bytes());
+    format!("mcp:{}:{:x}", config.id, hasher.finalize())
 }
 
 impl fmt::Debug for McpServerConfig {
