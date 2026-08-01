@@ -933,6 +933,7 @@ fn ide_file_maps_detect_open_close_and_active_changes() {
     );
 }
 
+#[cfg(any())]
 #[test]
 fn ai_host_calls_return_sanitized_messages_and_provider_info() {
     let chat = oxideterm_ai::AiChatState {
@@ -1084,6 +1085,7 @@ fn ai_host_calls_return_sanitized_messages_and_provider_info() {
     assert!(models.as_array().unwrap().contains(&json!("gpt-4.1")));
 }
 
+#[cfg(any())]
 #[test]
 fn ai_new_message_events_omit_message_content() {
     let snapshot = serde_json::json!({

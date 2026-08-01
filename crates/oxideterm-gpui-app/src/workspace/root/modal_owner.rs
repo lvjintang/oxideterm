@@ -907,7 +907,6 @@ mod tests {
         let projection = ActiveWindowModalProjection {
             new_connection_open: true,
             keyboard_interactive_challenge_open: true,
-            ai_summarize_phase: Some(VISIBLE),
             settings_data_directory_phase: Some(VISIBLE),
             host_tools_modal: Some(connection_monitor::HostToolsWindowModalSnapshot::ScheduleLogs),
             native_plugin_phase: Some(VISIBLE),

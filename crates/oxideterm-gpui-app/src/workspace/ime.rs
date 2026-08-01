@@ -3510,7 +3510,7 @@ mod tests {
     fn classified_secret_ime_targets_project_only_masked_utf16_geometry() {
         let secret = "token密😄";
         let targets = [
-            WorkspaceImeTarget::Settings(SettingsInput::AiProviderApiKey(0)),
+            WorkspaceImeTarget::Settings(SettingsInput::ManagedKeyPastePassphrase),
             WorkspaceImeTarget::NewConnection(NewConnectionField::Password),
             WorkspaceImeTarget::NewConnection(NewConnectionField::UpstreamProxyPassword),
             WorkspaceImeTarget::KeyboardInteractive(0),
@@ -3563,7 +3563,7 @@ mod tests {
     fn platform_commit_and_marked_text_debug_are_redacted() {
         let secret = "debug-secret";
         let mut pending = PendingPlatformTextCommit {
-            target: WorkspaceImeTarget::Settings(SettingsInput::AiProviderApiKey(0)),
+            target: WorkspaceImeTarget::Settings(SettingsInput::ManagedKeyPastePassphrase),
             text: Zeroizing::new(secret.to_string()),
             generation: 9,
             consumed: false,
