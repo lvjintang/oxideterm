@@ -33,6 +33,7 @@ mod tests {
             identity_agent: None,
             agent_forwarding_socket: None,
             legacy_ssh_compatibility: false,
+            x11_forwarding: ConnectionX11ForwardingOptions::default(),
             dedicated_new_terminal_connection: false,
             post_connect_command: None,
             terminal: ConnectionTerminalOptions::default(),
@@ -47,6 +48,7 @@ mod tests {
     fn terminal_options_round_trip_without_changing_legacy_defaults() {
         let default_options = serde_json::to_value(ConnectionOptions::default()).unwrap();
         assert!(default_options.get("terminal").is_none());
+        assert!(default_options.get("x11_forwarding").is_none());
         assert!(
             default_options
                 .get("dedicated_new_terminal_connection")
@@ -83,6 +85,148 @@ mod tests {
         let legacy: ConnectionOptions = serde_json::from_value(serde_json::json!({})).unwrap();
         assert!(legacy.terminal.inherits_application_defaults());
         assert!(!legacy.dedicated_new_terminal_connection);
+        assert_eq!(
+            legacy.x11_forwarding,
+            ConnectionX11ForwardingOptions::default()
+        );
+    }
+
+    #[test]
+    fn x11_policy_round_trips_without_runtime_authority_material() {
+        let options = ConnectionOptions {
+            x11_forwarding: ConnectionX11ForwardingOptions {
+                enabled: true,
+                mode: ConnectionX11ForwardingMode::Trusted,
+                untrusted_timeout_seconds: 900,
+            },
+            ..ConnectionOptions::default()
+        };
+
+        let serialized = serde_json::to_value(&options).unwrap();
+        assert_eq!(serialized["x11_forwarding"]["enabled"], true);
+        assert_eq!(serialized["x11_forwarding"]["mode"], "trusted");
+        assert_eq!(serialized["x11_forwarding"]["untrusted_timeout_seconds"], 900);
+        let text = serialized.to_string();
+        assert!(!text.contains("DISPLAY"));
+        assert!(!text.contains("MIT-MAGIC-COOKIE-1"));
+
+        let decoded: ConnectionOptions = serde_json::from_value(serialized).unwrap();
+        assert_eq!(decoded.x11_forwarding, options.x11_forwarding);
+    }
+
+    #[test]
+    fn group_rename_and_delete_apply_to_the_entire_saved_session_subtree() {
+        let store_path = temp_store_path("group-subtree-maintenance");
+        let mut store = ConnectionStore::load(&store_path).unwrap();
+
+        let mut connection_request = request("ssh-in-subtree", SavedAuth::Agent);
+        connection_request.group = Some("Production/Core".to_string());
+        store.upsert(connection_request).unwrap();
+
+        let mut serial = SerialProfile::new("Console", "/dev/tty.test");
+        serial.group = Some("Production/Core/Serial".to_string());
+        let serial_id = serial.id.clone();
+        store.data.serial_profiles.push(serial);
+
+        let mut telnet = TelnetProfile::new("Router", "router.example.com", 23);
+        telnet.group = Some("Production/Network".to_string());
+        let telnet_id = telnet.id.clone();
+        store.data.telnet_profiles.push(telnet);
+
+        let mut remote = RemoteDesktopProfile::new(
+            "Desktop",
+            RemoteDesktopProtocol::Rdp,
+            "desktop.example.com",
+            3389,
+        );
+        remote.group = Some("Production/Core".to_string());
+        let remote_id = remote.id.clone();
+        store.data.remote_desktop_profiles.push(remote);
+        store.data.groups.push("Unrelated".to_string());
+        store.data.groups.push("Production-Backup".to_string());
+        store.normalize();
+        store.save().unwrap();
+
+        let updated = store
+            .rename_group("Production", "Live".to_string())
+            .unwrap();
+
+        assert!(updated >= 4);
+        assert!(
+            store
+                .groups()
+                .iter()
+                .all(|group| !group_path_is_within(group, "Production"))
+        );
+        assert!(store.groups().contains(&"Live/Core".to_string()));
+        assert_eq!(store.get("ssh-in-subtree").unwrap().group.as_deref(), Some("Live/Core"));
+        assert_eq!(
+            store
+                .serial_profiles()
+                .iter()
+                .find(|profile| profile.id == serial_id)
+                .and_then(|profile| profile.group.as_deref()),
+            Some("Live/Core/Serial")
+        );
+        assert_eq!(
+            store
+                .telnet_profiles()
+                .iter()
+                .find(|profile| profile.id == telnet_id)
+                .and_then(|profile| profile.group.as_deref()),
+            Some("Live/Network")
+        );
+        assert_eq!(
+            store
+                .remote_desktop_profiles()
+                .iter()
+                .find(|profile| profile.id == remote_id)
+                .and_then(|profile| profile.group.as_deref()),
+            Some("Live/Core")
+        );
+        assert!(store.groups().contains(&"Unrelated".to_string()));
+        assert!(store.groups().contains(&"Production-Backup".to_string()));
+
+        store.delete_group("Live").unwrap();
+        let reloaded = ConnectionStore::load(&store_path).unwrap();
+        assert!(
+            reloaded
+                .groups()
+                .iter()
+                .all(|group| !group_path_is_within(group, "Live"))
+        );
+        assert!(reloaded.get("ssh-in-subtree").unwrap().group.is_none());
+        assert!(reloaded.serial_profiles()[0].group.is_none());
+        assert!(reloaded.telnet_profiles()[0].group.is_none());
+        assert!(reloaded.remote_desktop_profiles()[0].group.is_none());
+        assert!(reloaded.groups().contains(&"Unrelated".to_string()));
+        assert!(
+            reloaded
+                .groups()
+                .contains(&"Production-Backup".to_string())
+        );
+        let _ = fs::remove_file(store_path);
+    }
+
+    #[test]
+    fn group_rename_rejects_existing_destinations_and_own_descendants() {
+        let mut store = load_empty_store("group-rename-conflicts");
+        store.create_group("Source/Child".to_string()).unwrap();
+        store.create_group("Destination".to_string()).unwrap();
+
+        assert!(
+            store
+                .rename_group("Source", "Destination".to_string())
+                .is_err()
+        );
+        assert!(
+            store
+                .rename_group("Source", "Source/Child/New".to_string())
+                .is_err()
+        );
+        assert!(store.groups().contains(&"Source/Child".to_string()));
+        assert!(store.groups().contains(&"Destination".to_string()));
+        let _ = fs::remove_file(store.path());
     }
 
     #[test]
@@ -1645,6 +1789,11 @@ mod tests {
             identity_agent: None,
             agent_forwarding_socket: None,
             legacy_ssh_compatibility: true,
+            x11_forwarding: ConnectionX11ForwardingOptions {
+                enabled: true,
+                mode: ConnectionX11ForwardingMode::Untrusted,
+                untrusted_timeout_seconds: 1_800,
+            },
             dedicated_new_terminal_connection: true,
             post_connect_command: Some("uname -a".to_string()),
             terminal: ConnectionTerminalOptions::default(),
@@ -1669,6 +1818,14 @@ mod tests {
         assert_eq!(imported.options.term_type.as_deref(), Some("xterm-direct"));
         assert!(imported.options.agent_forwarding);
         assert!(imported.options.legacy_ssh_compatibility);
+        assert_eq!(
+            imported.options.x11_forwarding,
+            ConnectionX11ForwardingOptions {
+                enabled: true,
+                mode: ConnectionX11ForwardingMode::Untrusted,
+                untrusted_timeout_seconds: 1_800,
+            }
+        );
         assert!(imported.options.dedicated_new_terminal_connection);
         assert_eq!(
             imported.options.post_connect_command.as_deref(),

@@ -38,6 +38,26 @@ pub(super) fn expand_group_path(group: &str, expanded_groups: &mut HashSet<Strin
     }
 }
 
+/// Returns whether a path is the selected group or one of its descendants.
+pub(super) fn session_group_path_is_within(candidate: &str, group: &str) -> bool {
+    candidate == group
+        || candidate
+            .strip_prefix(group)
+            .is_some_and(|suffix| suffix.starts_with('/'))
+}
+
+/// Rewrites UI group state after a persisted subtree rename.
+pub(super) fn renamed_session_group_path(
+    candidate: &str,
+    old_group: &str,
+    new_group: &str,
+) -> Option<String> {
+    session_group_path_is_within(candidate, old_group).then(|| {
+        let suffix = &candidate[old_group.len()..];
+        format!("{new_group}{suffix}")
+    })
+}
+
 pub(super) fn format_last_used(last_used: Option<&str>, i18n: &I18n) -> String {
     let Some(last_used) = last_used else {
         return i18n.t("sessionManager.table.never_used");
@@ -374,6 +394,7 @@ pub(in crate::workspace) fn form_from_saved_connection(
     // Preserve compatibility settings when an existing connection enters edit mode.
     form.legacy_ssh_compatibility = conn.options.legacy_ssh_compatibility;
     form.dedicated_new_terminal_connection = conn.options.dedicated_new_terminal_connection;
+    form.x11_forwarding = conn.options.x11_forwarding;
     form.terminal = conn.options.terminal;
     form.save_connection = true;
     form.error = error;
@@ -567,6 +588,7 @@ fn connection_draft_from_form_with_proxy_hop_prefix(
         agent_forwarding_socket: form.agent_forwarding_socket.clone(),
         legacy_ssh_compatibility: form.legacy_ssh_compatibility,
         dedicated_new_terminal_connection: form.dedicated_new_terminal_connection,
+        x11_forwarding: form.x11_forwarding,
         post_connect_command: form.post_connect_command.clone(),
         terminal: form.terminal,
     }
