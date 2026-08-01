@@ -31,6 +31,8 @@ __pycache__/
 /docs/tauri
 /docs/NodeSeek/
 .codex-private/
+.release-signing/
+.local-tools/
 .deps
 AGENTS.md
 tasks/*
