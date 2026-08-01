@@ -42,7 +42,6 @@ impl WorkspaceApp {
             }
             ("theme", "setActive") => self.apply_native_plugin_theme_effect(&args, cx),
             ("ide", method) => self.apply_native_plugin_ide_effect(method, args, cx),
-            ("ai", method) => self.apply_native_plugin_ai_effect(method, args, cx),
             ("cloudSync", method) => self.apply_native_plugin_cloud_sync_effect(method, &args, cx),
             _ => return false,
         }
@@ -235,47 +234,6 @@ impl WorkspaceApp {
             }
             _ => false,
         });
-    }
-
-    fn apply_native_plugin_ai_effect(&mut self, method: &str, args: Value, cx: &mut Context<Self>) {
-        match method {
-            "createConversation" => {
-                self.create_ai_sidebar_conversation(
-                    string_arg(&args, "title").map(str::to_string),
-                    cx,
-                );
-            }
-            "selectConversation" => {
-                if let Some(id) = string_arg(&args, "conversationId") {
-                    self.select_ai_conversation(id.to_string(), cx);
-                    cx.notify();
-                }
-            }
-            "sendMessage" => {
-                if let Some(content) = args.get("content").and_then(Value::as_str) {
-                    // Plugin text is a sensitive boundary: redact credential-like
-                    // material before the existing AI workflow builds model context.
-                    let content = Zeroizing::new(content.to_string());
-                    let sanitized = oxideterm_ai::sanitize_for_ai(content.as_str());
-                    self.ai_entity.update(cx, |ai, _cx| {
-                        ai.set_chat_draft(sanitized);
-                    });
-                    self.send_ai_chat_draft(cx);
-                }
-            }
-            "cancelGeneration" => self.cancel_ai_chat_stream(cx),
-            "deleteConversation" => {
-                if let Some(id) = string_arg(&args, "conversationId") {
-                    self.delete_ai_conversation(id, cx);
-                    cx.notify();
-                }
-            }
-            "clearConversations" => {
-                self.clear_ai_conversations(cx);
-                cx.notify();
-            }
-            _ => {}
-        }
     }
 
     fn apply_native_plugin_cloud_sync_effect(

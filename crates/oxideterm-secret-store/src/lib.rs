@@ -19,6 +19,65 @@ pub struct NativeSecretStore {
     service: String,
 }
 
+/// A secret namespace that uses the portable vault when portable mode is
+/// enabled, and the OS credential manager otherwise.
+#[derive(Clone, Debug)]
+pub struct ScopedSecretStore {
+    service: String,
+}
+
+impl ScopedSecretStore {
+    pub fn new(service: impl Into<String>) -> Self {
+        Self {
+            service: service.into(),
+        }
+    }
+
+    pub fn store(&self, account: &str, secret: Zeroizing<String>) -> Result<()> {
+        if secret.is_empty() {
+            return self.delete(account);
+        }
+        if oxideterm_portable_runtime::is_portable_mode()? {
+            return oxideterm_portable_runtime::keystore::store_secret(
+                &self.service,
+                account,
+                secret.as_str(),
+            )
+            .context("failed to store secret in the portable vault");
+        }
+        NativeSecretStore::new(&self.service).store(account, secret.as_str())
+    }
+
+    pub fn get(&self, account: &str) -> Result<Option<Zeroizing<String>>> {
+        if oxideterm_portable_runtime::is_portable_mode()? {
+            return match oxideterm_portable_runtime::keystore::get_secret(&self.service, account) {
+                Ok(secret) => Ok(Some(secret)),
+                Err(oxideterm_portable_runtime::keystore::PortableKeystoreError::NotFound(_)) => {
+                    Ok(None)
+                }
+                Err(error) => Err(error).context("failed to load secret from the portable vault"),
+            };
+        }
+        NativeSecretStore::new(&self.service).get_and_relax(account)
+    }
+
+    pub fn exists(&self, account: &str) -> Result<bool> {
+        if oxideterm_portable_runtime::is_portable_mode()? {
+            return oxideterm_portable_runtime::keystore::secret_exists(&self.service, account)
+                .context("failed to inspect secret in the portable vault");
+        }
+        NativeSecretStore::new(&self.service).exists(account)
+    }
+
+    pub fn delete(&self, account: &str) -> Result<()> {
+        if oxideterm_portable_runtime::is_portable_mode()? {
+            return oxideterm_portable_runtime::keystore::delete_secret(&self.service, account)
+                .context("failed to delete secret from the portable vault");
+        }
+        NativeSecretStore::new(&self.service).delete(account)
+    }
+}
+
 impl NativeSecretStore {
     pub fn new(service: impl Into<String>) -> Self {
         Self {

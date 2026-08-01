@@ -22,7 +22,6 @@ members = [
   "crates/oxideterm-ai",
   "crates/oxideterm-ai-tasks",
   "crates/oxideterm-skills",
-  "crates/oxideterm-acp-adapter",
   "crates/oxideterm-acp-host-tools",
   "crates/oxideterm-editor-core",
   "crates/oxideterm-editor-syntax",

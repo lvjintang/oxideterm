@@ -500,47 +500,6 @@ impl WorkspaceApp {
             settings.initialize_background_gallery(background_images);
         });
         let app_lock = app_lock::AppLockState::load(oxideterm_app_lock::AppLockStore::new());
-        let ai_key_store = oxideterm_ai::AiProviderKeyStore::new();
-        let ai_entity = cx.new(|cx| {
-            let mut entity = ai_state::AiWorkspaceEntity::new_with_agent_fs(
-                forwarding_runtime.clone(),
-                ai_key_store,
-                ai_agent_fs,
-                cx,
-            );
-            entity.configure_chat_surface(
-                initial_context_sidebar_width,
-                Some(current_window_size(window)),
-            );
-            entity
-        });
-        let ai_entity_subscription = cx.subscribe(
-            &ai_entity,
-            |workspace, _ai_entity, event: &ai_state::AiWorkspaceEvent, cx| {
-                workspace.enqueue_ai_window_effect(event, cx);
-            },
-        );
-        let acp_entity =
-            cx.new(|cx| acp_workspace::AcpWorkspaceEntity::new(forwarding_runtime.clone(), cx));
-        let acp_entity_subscription = cx.subscribe(
-            &acp_entity,
-            |workspace, _acp_entity, _event: &acp_workspace::AcpWorkspaceEvent, cx| {
-                workspace.forward_acp_workspace_deliveries(cx);
-            },
-        );
-        let ai_background_tasks = cx.new(|cx| {
-            ai_background_tasks::AiBackgroundTaskEntity::new(forwarding_runtime.clone(), cx)
-        });
-        let ai_background_tasks_subscription = cx.subscribe(
-            &ai_background_tasks,
-            |workspace, _tasks, event: &ai_background_tasks::AiBackgroundTaskEvent, cx| {
-                workspace.handle_ai_background_task_event(*event, cx);
-            },
-        );
-        let ai_runtime_context = cx.new(|cx| {
-            ai_runtime_context::AiRuntimeContextEntity::attach_release_shutdown(cx);
-            ai_runtime_context::AiRuntimeContextEntity::new()
-        });
         let plugin_task_runtime = forwarding_runtime.clone();
         let plugin_entity = cx.new(move |cx| {
             plugin_entity::PluginWorkspaceEntity::new(plugin_task_runtime, plugin_registry, cx)
@@ -581,7 +540,7 @@ impl WorkspaceApp {
         let terminal_command_sender_observation =
             cx.observe(&terminal_command_sender, |_, _, cx| cx.notify());
         let ide_workspace = cx.new({
-            let fs = ai_entity.read(cx).agent_fs().clone();
+            let fs = ai_agent_fs.clone();
             let backend_runtime = forwarding_runtime.clone();
             move |_| ide::IdeWorkspaceEntity::new(fs, backend_runtime)
         });
@@ -623,8 +582,6 @@ impl WorkspaceApp {
             _settings_workspace_subscription: settings_workspace_subscription,
             segmented_control_user_motion:
                 selection_motion::UserSegmentedControlMotionState::default(),
-            ai_text_editor_dialog: None,
-            ai_text_editor: None,
             // Detached local terminals are a bounded popover list, but the
             // number of retained background shells is user-driven, so keep it
             // on the same ListState path as other browser-style popovers.
@@ -652,16 +609,9 @@ impl WorkspaceApp {
                 && !settings.sidebar_ui.zen_mode
                 && settings.ai.enabled,
             context_sidebar_motion_generation: 0,
-            ai_entity,
-            acp_entity,
             skill_registry,
             skill_workspace_root,
             loaded_conversation_skills: HashMap::new(),
-            ai_background_tasks,
-            _ai_background_tasks_subscription: ai_background_tasks_subscription,
-            ai_runtime_context,
-            _ai_entity_subscription: ai_entity_subscription,
-            _acp_entity_subscription: acp_entity_subscription,
             active_context_sidebar_panel: ContextSidebarPanel::Assistant,
             needs_active_pane_focus: false,
             active_sidebar_section: SidebarSection::from_settings_key(
@@ -814,23 +764,6 @@ impl WorkspaceApp {
             overlay,
             _overlay_observation: overlay_observation,
         };
-        let workspace_window_bounds = cx.observe_window_bounds(window, |this, window, cx| {
-            this.clamp_sidebar_widths_to_viewport(current_window_size(window).0, cx);
-            this.update_ai_sidebar_overlay_for_window_bounds(window, cx);
-        });
-        let ai_knowledge_activation = cx.observe_window_activation(window, |this, window, cx| {
-            if window.is_window_active() {
-                this.knowledge_sync_external_edit(false, cx);
-            }
-        });
-        workspace.ai_entity.update(cx, |ai, _cx| {
-            ai.retain_window_observers(workspace_window_bounds, ai_knowledge_activation);
-        });
-        workspace.sync_ai_workspace_visibility(cx);
-        if workspace.ai_sidebar_visible() {
-            workspace.ensure_ai_chat_initialized(cx);
-            workspace.bootstrap_ai_mcp_registry(cx);
-        }
         if workspace.version_migration.open {
             workspace.refresh_cli_companion_status(cx);
         }
@@ -842,20 +775,6 @@ impl WorkspaceApp {
         workspace.sync_active_terminal_recording_elapsed_tick(cx);
         workspace.sync_active_privilege_prompt_inline_hint(cx);
         workspace.schedule_automatic_native_update_check(cx);
-        cx.on_release(|workspace, cx| {
-            // Shutdown ordering is security-sensitive: late broker callbacks
-            // fail before user-decision waiters and owner projections disappear.
-            workspace.ai_runtime_context.update(cx, |runtime, _cx| {
-                runtime.stop_accepting_and_finish_tool_sessions();
-            });
-            workspace.ai_entity.update(cx, |ai, _cx| {
-                ai.cancel_chat_stream();
-            });
-            workspace.ai_runtime_context.update(cx, |runtime, _cx| {
-                runtime.revoke_registered_owner_projections();
-            });
-        })
-        .detach();
         Ok(workspace)
     }
 

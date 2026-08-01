@@ -211,11 +211,6 @@ pub fn settings_tab_section_count(
         SettingsTab::Network => 2,
         SettingsTab::Sftp => 3,
         SettingsTab::Ide => 5,
-        SettingsTab::Ai => ai_settings_section_count(dynamic.ai_page),
-        SettingsTab::Knowledge => knowledge_settings_section_count(
-            dynamic.knowledge_has_error,
-            dynamic.knowledge_has_selected_collection,
-        ),
         SettingsTab::Keybindings => {
             keybinding_settings_section_count(dynamic.visible_keybinding_scope_count)
         }

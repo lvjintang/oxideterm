@@ -35,14 +35,8 @@ impl WorkspaceApp {
         cx: &mut Context<Self>,
     ) {
         let window_handle = window.window_handle();
-        let terminal_label = pane.read(cx).title().to_string();
         self.tab_host.update(cx, |tab_host, cx| {
             tab_host.register_terminal_pane(pane_id, session_id, pane, window_handle, cx);
-        });
-        // The live terminal session is the capability owner. A later tab move
-        // reuses this registration instead of minting another owner identity.
-        self.ai_runtime_context.update(cx, |runtime, _cx| {
-            runtime.register_terminal_session(session_id, terminal_label);
         });
     }
 
@@ -542,10 +536,6 @@ impl WorkspaceApp {
                             .right_0()
                             .bottom_0()
                             .child(pane),
-                    )
-                    .when(
-                        active && self.ai_entity.read(cx).terminal_inline_panel().open,
-                        |pane_frame| pane_frame.child(self.render_terminal_ai_inline_panel(cx)),
                     )
                     .when(active && has_split_panes, |pane_frame| {
                         let accent = self.tokens.ui.accent;

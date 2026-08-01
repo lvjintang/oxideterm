@@ -6,10 +6,6 @@ use super::super::*;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(in crate::workspace) enum ActiveTabWindowModalKind {
     SettingsNavigationEditor,
-    AiMcpServer,
-    KnowledgeCollectionCreate,
-    KnowledgeDocumentCreate,
-    KnowledgeDelete,
     KeybindingReset,
     ManagedKey,
     PortablePassword,
@@ -36,27 +32,6 @@ pub(in crate::workspace) enum ActiveWindowModalOwner {
     JumpServer,
     HostKeyChallenge,
     KeyboardInteractiveChallenge,
-    AiEnable {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiProviderKeyRemove {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiProviderRemove {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiSafety {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiSummarize {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiClearAll {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
-    AiDeleteMessage {
-        phase: oxideterm_gpui_ui::motion::ExitPhase,
-    },
     SettingsReset {
         phase: oxideterm_gpui_ui::motion::ExitPhase,
     },
@@ -107,7 +82,6 @@ pub(in crate::workspace) enum ActiveWindowModalOwner {
         phase: oxideterm_gpui_ui::motion::ExitPhase,
     },
     TerminalCommandSpecsEditor,
-    AiTextEditor,
     OxideImport {
         phase: oxideterm_gpui_ui::motion::ExitPhase,
     },
@@ -138,13 +112,6 @@ impl ActiveWindowModalOwner {
             Self::JumpServer => 2,
             Self::HostKeyChallenge => 3,
             Self::KeyboardInteractiveChallenge => 4,
-            Self::AiEnable { .. } => 5,
-            Self::AiProviderKeyRemove { .. } => 6,
-            Self::AiProviderRemove { .. } => 7,
-            Self::AiSafety { .. } => 8,
-            Self::AiSummarize { .. } => 9,
-            Self::AiClearAll { .. } => 10,
-            Self::AiDeleteMessage { .. } => 11,
             Self::SettingsReset { .. } => 12,
             Self::SettingsDataDirectory { .. } => 13,
             Self::RemoteShellIntegration => 14,
@@ -166,7 +133,6 @@ impl ActiveWindowModalOwner {
             Self::ThemeEditor { .. } => 30,
             Self::SettingsSshConfigImport { .. } => 31,
             Self::TerminalCommandSpecsEditor => 32,
-            Self::AiTextEditor => 33,
             Self::OxideImport { .. } => 34,
             Self::OxideExport { .. } => 35,
             Self::CommandPalette => 36,
@@ -182,14 +148,7 @@ impl ActiveWindowModalOwner {
 
     fn phase(self) -> oxideterm_gpui_ui::motion::ExitPhase {
         match self {
-            Self::AiEnable { phase }
-            | Self::AiProviderKeyRemove { phase }
-            | Self::AiProviderRemove { phase }
-            | Self::AiSafety { phase }
-            | Self::AiSummarize { phase }
-            | Self::AiClearAll { phase }
-            | Self::AiDeleteMessage { phase }
-            | Self::SettingsReset { phase }
+            Self::SettingsReset { phase }
             | Self::SettingsDataDirectory { phase }
             | Self::CloudSync { phase }
             | Self::NodeDisconnect { phase }
@@ -219,7 +178,6 @@ impl ActiveWindowModalOwner {
             | Self::HostScheduleLogs
             | Self::TerminalCastPlayer
             | Self::TerminalCommandSpecsEditor
-            | Self::AiTextEditor
             | Self::CommandPalette
             | Self::VersionMigration
             | Self::Onboarding
@@ -244,7 +202,6 @@ impl ActiveWindowModalOwner {
                 | Self::ThemeEditor { .. }
                 | Self::SettingsSshConfigImport { .. }
                 | Self::TerminalCommandSpecsEditor
-                | Self::AiTextEditor
                 | Self::OxideImport { .. }
                 | Self::OxideExport { .. }
                 | Self::CommandPalette
@@ -255,14 +212,13 @@ impl ActiveWindowModalOwner {
     fn key_route(self, key: &str) -> ActiveWindowModalKeyRoute {
         let visible = self.phase() == oxideterm_gpui_ui::motion::ExitPhase::Visible;
         let focused_child_owns_key = visible
-            && (self == Self::AiTextEditor
-                || matches!(
-                    self,
-                    Self::ActiveTabWindowModal {
-                        kind: ActiveTabWindowModalKind::SftpEditor,
-                        ..
-                    }
-                ))
+            && matches!(
+                self,
+                Self::ActiveTabWindowModal {
+                    kind: ActiveTabWindowModalKind::SftpEditor,
+                    ..
+                }
+            )
             && key != "escape";
         ActiveWindowModalKeyRoute {
             // Document editors must receive navigation and mutation keys at
@@ -293,13 +249,6 @@ pub(in crate::workspace) struct ActiveWindowModalProjection {
     pub(in crate::workspace) jump_server_open: bool,
     pub(in crate::workspace) host_key_challenge_open: bool,
     pub(in crate::workspace) keyboard_interactive_challenge_open: bool,
-    pub(in crate::workspace) ai_enable_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
-    pub(in crate::workspace) ai_provider_key_remove_phase:
-        Option<oxideterm_gpui_ui::motion::ExitPhase>,
-    pub(in crate::workspace) ai_provider_remove_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
-    pub(in crate::workspace) ai_safety_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
-    pub(in crate::workspace) ai_summarize_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
-    pub(in crate::workspace) ai_confirm: Option<ai_state::AiChatConfirmOwnerSnapshot>,
     pub(in crate::workspace) overlay_confirm: Option<overlay::WorkspaceOverlayConfirmOwnerSnapshot>,
     pub(in crate::workspace) settings_data_directory_phase:
         Option<oxideterm_gpui_ui::motion::ExitPhase>,
@@ -315,7 +264,6 @@ pub(in crate::workspace) struct ActiveWindowModalProjection {
     pub(in crate::workspace) settings_ssh_import_phase:
         Option<oxideterm_gpui_ui::motion::ExitPhase>,
     pub(in crate::workspace) terminal_command_specs_editor_open: bool,
-    pub(in crate::workspace) ai_text_editor_open: bool,
     pub(in crate::workspace) oxide_import_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
     pub(in crate::workspace) oxide_export_phase: Option<oxideterm_gpui_ui::motion::ExitPhase>,
     pub(in crate::workspace) command_palette_open: bool,
@@ -344,31 +292,6 @@ impl ActiveWindowModalProjection {
         let keyboard_interactive_owner = self
             .keyboard_interactive_challenge_open
             .then_some(ActiveWindowModalOwner::KeyboardInteractiveChallenge);
-        let ai_enable_owner = self
-            .ai_enable_phase
-            .map(|phase| ActiveWindowModalOwner::AiEnable { phase });
-        let ai_provider_key_remove_owner = self
-            .ai_provider_key_remove_phase
-            .map(|phase| ActiveWindowModalOwner::AiProviderKeyRemove { phase });
-        let ai_provider_remove_owner = self
-            .ai_provider_remove_phase
-            .map(|phase| ActiveWindowModalOwner::AiProviderRemove { phase });
-        let ai_safety_owner = self
-            .ai_safety_phase
-            .map(|phase| ActiveWindowModalOwner::AiSafety { phase });
-        let ai_summarize_owner = self
-            .ai_summarize_phase
-            .map(|phase| ActiveWindowModalOwner::AiSummarize { phase });
-        let ai_owner = self.ai_confirm.map(|snapshot| match snapshot.kind {
-            ai_state::AiChatConfirmOwnerKind::ClearAll => ActiveWindowModalOwner::AiClearAll {
-                phase: snapshot.phase,
-            },
-            ai_state::AiChatConfirmOwnerKind::DeleteMessage => {
-                ActiveWindowModalOwner::AiDeleteMessage {
-                    phase: snapshot.phase,
-                }
-            }
-        });
         let overlay_owner = self.overlay_confirm.map(|snapshot| match snapshot.kind {
             overlay::WorkspaceOverlayConfirmOwnerKind::SettingsReset => {
                 ActiveWindowModalOwner::SettingsReset {
@@ -456,9 +379,6 @@ impl ActiveWindowModalProjection {
         let command_specs_owner = self
             .terminal_command_specs_editor_open
             .then_some(ActiveWindowModalOwner::TerminalCommandSpecsEditor);
-        let ai_text_editor_owner = self
-            .ai_text_editor_open
-            .then_some(ActiveWindowModalOwner::AiTextEditor);
         let oxide_import_owner = self
             .oxide_import_phase
             .map(|phase| ActiveWindowModalOwner::OxideImport { phase });
@@ -481,7 +401,7 @@ impl ActiveWindowModalProjection {
             .then_some(ActiveWindowModalOwner::MermaidZoom);
 
         // Toasts, select popovers, context menus, drag previews, return
-        // handoffs, the broadcast menu, and AI floating controls are excluded.
+        // handoffs and the broadcast menu are excluded.
         // They are transient nonblocking layers and keep their own focused
         // input or Escape handling instead of consuming every window key.
         let _native_update_toast_visible = self.native_update_toast_visible;
@@ -491,12 +411,6 @@ impl ActiveWindowModalProjection {
             jump_server_owner,
             host_key_owner,
             keyboard_interactive_owner,
-            ai_enable_owner,
-            ai_provider_key_remove_owner,
-            ai_provider_remove_owner,
-            ai_safety_owner,
-            ai_summarize_owner,
-            ai_owner,
             overlay_owner,
             settings_data_owner,
             remote_shell_owner,
@@ -509,7 +423,6 @@ impl ActiveWindowModalProjection {
             theme_editor_owner,
             ssh_import_owner,
             command_specs_owner,
-            ai_text_editor_owner,
             oxide_import_owner,
             oxide_export_owner,
             command_palette_owner,
@@ -536,19 +449,6 @@ impl WorkspaceApp {
             .form
             .as_ref()
             .is_some_and(|form| form.jump_server_form.is_some());
-        let (ai_enable_phase, ai_provider_key_remove_phase, ai_provider_remove_phase, ai_confirm) = {
-            let ai = self.ai_entity.read(cx);
-            let phase = ai.settings_confirm_phase();
-            (
-                ai.settings_confirm_is_enable().then_some(phase),
-                ai.settings_confirm_is_provider_key_remove()
-                    .then_some(phase),
-                ai.settings_confirm_provider_name()
-                    .is_some()
-                    .then_some(phase),
-                ai.chat_confirm_owner_snapshot(),
-            )
-        };
         let (settings_data_directory_phase, theme_editor_phase, settings_ssh_import_phase) = {
             let settings = self.settings_workspace.read(cx);
             (
@@ -601,34 +501,6 @@ impl WorkspaceApp {
                 .connection_flow
                 .read(cx)
                 .has_keyboard_interactive_challenge(),
-            ai_enable_phase,
-            ai_provider_key_remove_phase,
-            ai_provider_remove_phase,
-            ai_safety_phase: self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .safety_confirm_open
-                .then_some(
-                    self.ai_entity
-                        .read(cx)
-                        .chat_ui()
-                        .safety_confirm_presence
-                        .phase(),
-                ),
-            ai_summarize_phase: self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .summarize_confirm_open
-                .then_some(
-                    self.ai_entity
-                        .read(cx)
-                        .chat_ui()
-                        .summarize_confirm_presence
-                        .phase(),
-                ),
-            ai_confirm,
             overlay_confirm: self.overlay.read(cx).confirm_owner_snapshot(),
             settings_data_directory_phase,
             remote_shell_integration_open: self
@@ -644,7 +516,6 @@ impl WorkspaceApp {
             theme_editor_phase,
             settings_ssh_import_phase,
             terminal_command_specs_editor_open: self.terminal_command_specs_editor_open,
-            ai_text_editor_open: self.ai_text_editor_dialog.is_some(),
             oxide_import_phase,
             oxide_export_phase,
             command_palette_open: self.command_palette.read(cx).is_open(),
@@ -664,7 +535,6 @@ impl WorkspaceApp {
         match active_tab.kind {
             TabKind::Settings => {
                 let settings = self.settings_workspace.read(cx);
-                let ai = self.ai_entity.read(cx);
                 if settings.portable_password_dialog_open() {
                     Some(ActiveTabWindowModalSnapshot {
                         kind: ActiveTabWindowModalKind::PortablePassword,
@@ -679,26 +549,6 @@ impl WorkspaceApp {
                     Some(ActiveTabWindowModalSnapshot {
                         kind: ActiveTabWindowModalKind::KeybindingReset,
                         phase: snapshot.phase,
-                    })
-                } else if ai.knowledge_delete_confirm().is_some() {
-                    Some(ActiveTabWindowModalSnapshot {
-                        kind: ActiveTabWindowModalKind::KnowledgeDelete,
-                        phase: visible,
-                    })
-                } else if ai.knowledge_document_dialog_open() {
-                    Some(ActiveTabWindowModalSnapshot {
-                        kind: ActiveTabWindowModalKind::KnowledgeDocumentCreate,
-                        phase: ai.knowledge_document_dialog_phase(),
-                    })
-                } else if ai.knowledge_create_dialog_open() {
-                    Some(ActiveTabWindowModalSnapshot {
-                        kind: ActiveTabWindowModalKind::KnowledgeCollectionCreate,
-                        phase: ai.knowledge_create_dialog_phase(),
-                    })
-                } else if ai.mcp_dialog_is_open() {
-                    Some(ActiveTabWindowModalSnapshot {
-                        kind: ActiveTabWindowModalKind::AiMcpServer,
-                        phase: ai.mcp_dialog_presence().phase(),
                     })
                 } else if settings.navigation_editor_open() {
                     Some(ActiveTabWindowModalSnapshot {
@@ -812,21 +662,6 @@ impl WorkspaceApp {
             ActiveWindowModalOwner::KeyboardInteractiveChallenge => {
                 let _ = self.handle_keyboard_interactive_key(event, window, cx);
             }
-            ActiveWindowModalOwner::AiEnable { .. }
-            | ActiveWindowModalOwner::AiProviderKeyRemove { .. }
-            | ActiveWindowModalOwner::AiProviderRemove { .. } => {
-                let _ = self.handle_ai_settings_confirm_key(event, cx);
-            }
-            ActiveWindowModalOwner::AiSafety { .. } => {
-                let _ = self.handle_ai_safety_confirm_key(event, cx);
-            }
-            ActiveWindowModalOwner::AiSummarize { .. } => {
-                let _ = self.handle_ai_summarize_confirm_key(event, cx);
-            }
-            ActiveWindowModalOwner::AiClearAll { .. }
-            | ActiveWindowModalOwner::AiDeleteMessage { .. } => {
-                let _ = self.handle_ai_chat_confirm_key(event, cx);
-            }
             ActiveWindowModalOwner::SettingsReset { .. } => {
                 let _ = self.handle_settings_reset_confirm_key(event, cx);
             }
@@ -936,11 +771,6 @@ impl WorkspaceApp {
                     self.close_terminal_command_specs_editor(cx);
                 }
             }
-            ActiveWindowModalOwner::AiTextEditor => {
-                if event.keystroke.key.as_str() == "escape" {
-                    self.close_ai_text_editor(false, cx);
-                }
-            }
             ActiveWindowModalOwner::OxideImport { .. } => {
                 let _ = self.handle_oxide_import_modal_key(event, cx);
             }
@@ -1001,16 +831,6 @@ impl WorkspaceApp {
             ActiveTabWindowModalKind::KeybindingReset => {
                 self.handle_keybinding_reset_confirm_key(event, window, cx)
             }
-            ActiveTabWindowModalKind::KnowledgeDelete => {
-                self.handle_knowledge_delete_confirm_key(event, cx)
-            }
-            ActiveTabWindowModalKind::KnowledgeDocumentCreate => {
-                self.handle_knowledge_document_dialog_key(event, cx)
-            }
-            ActiveTabWindowModalKind::KnowledgeCollectionCreate => {
-                self.handle_knowledge_collection_dialog_key(event, cx)
-            }
-            ActiveTabWindowModalKind::AiMcpServer => self.handle_ai_mcp_add_dialog_key(event, cx),
             ActiveTabWindowModalKind::SettingsNavigationEditor => {
                 if event.keystroke.key.as_str() == "escape" {
                     self.close_settings_navigation_editor(cx);
@@ -1050,13 +870,6 @@ mod tests {
     const EXITING: oxideterm_gpui_ui::motion::ExitPhase =
         oxideterm_gpui_ui::motion::ExitPhase::Exiting;
 
-    fn ai_clear_all() -> ai_state::AiChatConfirmOwnerSnapshot {
-        ai_state::AiChatConfirmOwnerSnapshot {
-            kind: ai_state::AiChatConfirmOwnerKind::ClearAll,
-            phase: VISIBLE,
-        }
-    }
-
     fn settings_reset() -> overlay::WorkspaceOverlayConfirmOwnerSnapshot {
         overlay::WorkspaceOverlayConfirmOwnerSnapshot {
             kind: overlay::WorkspaceOverlayConfirmOwnerKind::SettingsReset,
@@ -1067,7 +880,6 @@ mod tests {
     #[test]
     fn top_owner_matches_the_root_portal_render_order() {
         let projection = ActiveWindowModalProjection {
-            ai_confirm: Some(ai_clear_all()),
             overlay_confirm: Some(settings_reset()),
             tab_close_phase: Some(VISIBLE),
             ..Default::default()
@@ -1138,7 +950,6 @@ mod tests {
     #[test]
     fn app_lock_and_mermaid_stay_above_confirmation_portals() {
         let projection = ActiveWindowModalProjection {
-            ai_confirm: Some(ai_clear_all()),
             overlay_confirm: Some(settings_reset()),
             tab_close_phase: Some(VISIBLE),
             app_lock_dialog_open: true,
@@ -1161,7 +972,6 @@ mod tests {
     #[test]
     fn exiting_top_owner_remains_the_only_owner_until_unmounted() {
         let projection = ActiveWindowModalProjection {
-            ai_confirm: Some(ai_clear_all()),
             tab_close_phase: Some(EXITING),
             ..Default::default()
         };
@@ -1198,7 +1008,6 @@ mod tests {
     #[test]
     fn enter_dispatches_only_the_top_rendered_owner() {
         let projection = ActiveWindowModalProjection {
-            ai_confirm: Some(ai_clear_all()),
             tab_close_phase: Some(VISIBLE),
             native_plugin_phase: Some(VISIBLE),
             ..Default::default()
@@ -1240,7 +1049,6 @@ mod tests {
     #[test]
     fn visible_owner_consumes_printable_keys_even_without_a_modal_action() {
         let owner = ActiveWindowModalProjection {
-            ai_confirm: Some(ai_clear_all()),
             ..Default::default()
         }
         .top_owner()
@@ -1248,21 +1056,6 @@ mod tests {
         let route = owner.key_route("x");
         assert!(route.consumes_key());
         assert_eq!(route.dispatch_owner, Some(owner));
-    }
-
-    #[test]
-    fn ai_text_editor_yields_document_keys_but_captures_escape() {
-        let owner = ActiveWindowModalOwner::AiTextEditor;
-
-        for key in ["enter", "backspace", "left", "tab", "x"] {
-            let route = owner.key_route(key);
-            assert!(!route.consumes_key(), "{key} must reach the focused editor");
-            assert_eq!(route.dispatch_owner, None);
-        }
-
-        let escape = owner.key_route("escape");
-        assert!(escape.consumes_key());
-        assert_eq!(escape.dispatch_owner, Some(owner));
     }
 
     #[test]

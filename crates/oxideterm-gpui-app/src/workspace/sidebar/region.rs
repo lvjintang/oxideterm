@@ -84,7 +84,7 @@ impl WorkspaceApp {
         &mut self,
         cx: &mut Context<Self>,
     ) -> AnyElement {
-        let expanded_width = self.ai_entity.read(cx).chat_ui().sidebar_width;
+        let expanded_width = self.settings_store.settings().sidebar_ui.ai_sidebar_width as f32;
         let expanded = self.context_sidebar_visible();
         let content = div()
             .flex_none()
@@ -116,9 +116,11 @@ impl WorkspaceApp {
         &mut self,
         cx: &mut Context<Self>,
     ) -> AnyElement {
-        context_sidebar_frame_chrome(self.ai_entity.read(cx).chat_ui().sidebar_width)
-            .child(self.render_context_right_sidebar_region(cx))
-            .into_any_element()
+        context_sidebar_frame_chrome(
+            self.settings_store.settings().sidebar_ui.ai_sidebar_width as f32,
+        )
+        .child(self.render_context_right_sidebar_region(cx))
+        .into_any_element()
     }
 
     pub(in crate::workspace) fn render_context_right_sidebar_region(
@@ -231,14 +233,7 @@ impl WorkspaceApp {
                             // Keep the sidebar tint below the titlebar so the
                             // translucent chrome is composited exactly once.
                             .bg(self.workspace_sidebar_background(theme.bg))
-                            .child(match self.active_context_sidebar_panel {
-                                ContextSidebarPanel::Assistant => {
-                                    self.render_ai_sidebar_content(cx)
-                                }
-                                ContextSidebarPanel::HostTools => {
-                                    self.render_host_tools_context_panel(cx)
-                                }
-                            }),
+                            .child(self.render_host_tools_context_panel(cx)),
                     ),
             )
             .into_any_element()
@@ -285,34 +280,27 @@ impl WorkspaceApp {
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let theme = self.tokens.ui;
-        sidebar_resize_hotzone_chrome(
-            "context-right-sidebar-resize-hotzone",
-            if self.ai_entity.read(cx).chat_ui().sidebar_resizing {
-                rgb(theme.accent)
-            } else {
-                rgb(theme.border)
-            },
-        )
-        .right(px(sidebar_resize_hotzone_origin(
-            self.ai_entity.read(cx).chat_ui().sidebar_width,
-        )))
-        .top(px(top_offset))
-        .bottom_0()
-        .on_mouse_down(
-            MouseButton::Left,
-            cx.listener(|this, event: &gpui::MouseDownEvent, window, cx| {
-                this.start_ai_sidebar_resize(event, window, cx);
-                window.prevent_default();
-                cx.stop_propagation();
-            }),
-        )
-        .on_hover(cx.listener(|this, hovered, _window, cx| {
-            if this.sidebar_resize_hotzone_hovered != *hovered {
-                this.sidebar_resize_hotzone_hovered = *hovered;
-                cx.notify();
-            }
-        }))
-        .into_any_element()
+        sidebar_resize_hotzone_chrome("context-right-sidebar-resize-hotzone", rgb(theme.border))
+            .right(px(sidebar_resize_hotzone_origin(
+                self.settings_store.settings().sidebar_ui.ai_sidebar_width as f32,
+            )))
+            .top(px(top_offset))
+            .bottom_0()
+            .on_mouse_down(
+                MouseButton::Left,
+                cx.listener(|this, event: &gpui::MouseDownEvent, window, cx| {
+                    this.start_ai_sidebar_resize(event, window, cx);
+                    window.prevent_default();
+                    cx.stop_propagation();
+                }),
+            )
+            .on_hover(cx.listener(|this, hovered, _window, cx| {
+                if this.sidebar_resize_hotzone_hovered != *hovered {
+                    this.sidebar_resize_hotzone_hovered = *hovered;
+                    cx.notify();
+                }
+            }))
+            .into_any_element()
     }
 
     pub(in crate::workspace) fn render_context_sidebar_panel_title(

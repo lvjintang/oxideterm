@@ -27,16 +27,6 @@ impl WorkspaceApp {
                 );
             }
         }
-        for (sequence, record) in self.ai_runtime_command_records(cx).into_iter().enumerate() {
-            put_terminal_history_entry(
-                &mut entries,
-                record.command,
-                TerminalHistorySource::AiLedger,
-                record.finished_at.unwrap_or(record.started_at),
-                false,
-                sequence,
-            );
-        }
         if self
             .settings_store
             .settings()

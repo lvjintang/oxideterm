@@ -175,8 +175,6 @@ impl WorkspaceApp {
         cx: &mut Context<Self>,
     ) {
         let runtime = self.forwarding_runtime.clone();
-        let key_store = self.ai_entity.read(cx).key_store().clone();
-        let ai_providers = self.settings_store.settings().ai.providers.clone();
         self.settings_workspace.update(cx, |settings, cx| {
             settings.start_portable_status_refresh(
                 force,
@@ -184,13 +182,9 @@ impl WorkspaceApp {
                 move || {
                     let status = oxideterm_portable_runtime::portable_status_snapshot()
                         .map_err(|error| error.to_string());
-                    let exportable_secret_count = oxideterm_ai::provider_views(&ai_providers)
-                        .into_iter()
-                        .filter(|provider| key_store.has_provider_key(&provider.id))
-                        .count();
                     PortableStatusRefresh {
                         status,
-                        exportable_secret_count,
+                        exportable_secret_count: 0,
                     }
                 },
                 cx,

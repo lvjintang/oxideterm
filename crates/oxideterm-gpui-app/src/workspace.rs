@@ -1,9 +1,4 @@
-mod acp_workspace;
 mod actions;
-mod ai_background_tasks;
-mod ai_lazy;
-mod ai_runtime_context;
-mod ai_state;
 mod app_lock;
 mod breadcrumb_scroll;
 mod browser_behavior;
@@ -83,7 +78,6 @@ use std::{
 };
 
 use self::{
-    ai_lazy::LazyAiRagStore,
     breadcrumb_scroll::scroll_breadcrumb_by_wheel,
     path_completion::{
         PathCompletionCandidate, PathCompletionOwner, PathCompletionState,
@@ -214,9 +208,7 @@ use oxideterm_settings::{
     MIN_WINDOW_OPACITY, PersistedSettings, SettingsStore, background_images_directory,
     default_settings_path, ensure_bundled_background_image, list_background_images,
 };
-use oxideterm_settings_model::{
-    AiMcpServerDraft, AiProviderKeyStatusDelivery, SettingsNavigationLayout,
-};
+use oxideterm_settings_model::SettingsNavigationLayout;
 use oxideterm_sftp::{
     BackgroundTransferDirection, BackgroundTransferKind, BackgroundTransferSnapshot,
     BackgroundTransferState, LazyProgressStore, ProgressStore, SftpTransferGuard,
@@ -278,14 +270,7 @@ pub(crate) use self::root::helpers::tokens_from_settings as portable_bootstrap_t
 use self::root::state::{ReconnectWorkerResult, WorkspaceSshNode, WorkspaceSshNodeEndpoint};
 use self::root::{background::*, helpers::*};
 use self::session_manager::{SessionManagerState, SessionManagerWorkspaceEvent};
-use self::sidebar::AiInlinePanelState;
 use self::sidebar::{ActiveSessionSidebarViewMode, SidebarSection};
-use self::sidebar::{
-    AiCompactionDelivery, AiCompactionDeliverySender, AiStreamDelivery, AiStreamDeliverySender,
-    ai_now_ms,
-};
-#[cfg(test)]
-use self::sidebar::{AiCompactionDeliveryKind, AiStreamDeliveryEvent};
 use self::tabs::{TabRemovalTransition, TerminalLocation};
 use self::terminal_entity::{WorkspaceTerminalEntity, WorkspaceTerminalEvent};
 use self::window_intent::WorkspaceWindowIntentEntity;
@@ -293,13 +278,13 @@ use crate::{
     CloseOtherTabs, ClosePane, CloseSearch, CloseTab, CommandPalette, Copy, Cut, Find, FindNext,
     FindPrev, FontDecrease, FontIncrease, FontReset, GoToTab1, GoToTab2, GoToTab3, GoToTab4,
     GoToTab5, GoToTab6, GoToTab7, GoToTab8, GoToTab9, NewConnection, NewTerminal, NextTab,
-    OpenSettings, PaletteAiSidebar, PaletteBroadcast, PaletteCancelReconnect, PaletteCleanupDead,
+    OpenSettings, PaletteBroadcast, PaletteCancelReconnect, PaletteCleanupDead,
     PaletteDetachTerminal, PaletteDisconnectAll, PaletteEventLog, PaletteHealthCheck,
     PaletteReconnectAll, PaletteResetPanes, Paste, PrevTab, ShellLauncher, ShowShortcuts,
     SplitHorizontal, SplitNavLeft, SplitNavRight, SplitVertical, SwitchLocaleChinese,
     SwitchLocaleEnglish, SwitchLocaleFrench, SwitchLocaleGerman, SwitchLocaleItalian,
     SwitchLocaleJapanese, SwitchLocaleKorean, SwitchLocalePortugueseBrazil, SwitchLocaleSpanish,
-    SwitchLocaleTraditionalChinese, SwitchLocaleVietnamese, TerminalAiPanel, TerminalClearScreen,
+    SwitchLocaleTraditionalChinese, SwitchLocaleVietnamese, TerminalClearScreen,
     TerminalFreeTypeMode, TerminalRecording, ToggleSidebar, ZenMode,
 };
 use crate::{assets::LucideIcon, bundled_fonts};
@@ -744,9 +729,6 @@ pub(crate) struct WorkspaceApp {
     _settings_workspace_observation: Subscription,
     _settings_workspace_subscription: Subscription,
     segmented_control_user_motion: selection_motion::UserSegmentedControlMotionState,
-    // Prompt and memory documents are edited outside the virtual settings list.
-    ai_text_editor_dialog: Option<settings::AiTextEditorDialog>,
-    ai_text_editor: Option<Entity<oxideterm_gpui_editor::TextEditorView>>,
     detached_local_terminal_list_state: ListState,
     detached_local_terminal_list_cache: RefCell<VirtualListSignatureCache>,
     plugin_entity: Entity<plugin_entity::PluginWorkspaceEntity>,
@@ -760,16 +742,9 @@ pub(crate) struct WorkspaceApp {
     sidebar_width: f32,
     context_sidebar_rendered: bool,
     context_sidebar_motion_generation: u64,
-    ai_entity: Entity<ai_state::AiWorkspaceEntity>,
-    acp_entity: Entity<acp_workspace::AcpWorkspaceEntity>,
     skill_registry: std::sync::Arc<parking_lot::RwLock<oxideterm_skills::SkillRegistry>>,
     skill_workspace_root: Option<std::path::PathBuf>,
     loaded_conversation_skills: HashMap<String, HashMap<String, String>>,
-    ai_background_tasks: Entity<ai_background_tasks::AiBackgroundTaskEntity>,
-    _ai_background_tasks_subscription: Subscription,
-    ai_runtime_context: Entity<ai_runtime_context::AiRuntimeContextEntity>,
-    _ai_entity_subscription: Subscription,
-    _acp_entity_subscription: Subscription,
     active_context_sidebar_panel: ContextSidebarPanel,
     needs_active_pane_focus: bool,
     active_sidebar_section: SidebarSection,

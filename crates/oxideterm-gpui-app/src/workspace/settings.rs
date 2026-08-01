@@ -12,25 +12,16 @@ use oxideterm_settings::{
     create_default_highlight_rule, is_gpui_preview_version, reindex_highlight_rules,
 };
 use oxideterm_settings_model::{
-    AcpAgentPreset, AiProviderModelChipItem, AiProviderModelPanel, AiSettingsPage,
-    AiToolPolicyGroup, AiToolPolicyGroupState, CliCompanionStatus, KnowledgeDeleteTarget,
-    SETTINGS_SECTION_HEADER_ITEM_COUNT, SettingsDynamicSectionCounts, SettingsInputDraftApply,
-    TERMINAL_THEME_COLOR_FIELDS, ThemeColorField, ThemeEditorSection, ThemeEditorState,
-    UI_THEME_COLOR_FIELDS, ai_add_acp_agent, ai_add_acp_agent_preset,
-    ai_context_max_chars_label_key, ai_context_visible_lines_label_key, ai_delete_acp_agent,
-    ai_mcp_configs, ai_mcp_server_signature, ai_mcp_transport_label,
-    ai_model_context_window_panels,
-    ai_model_context_window_row as ai_model_context_window_row_model, ai_provider_card_signature,
-    ai_provider_model_chip_rows, ai_provider_model_row_signature, ai_provider_views,
-    ai_tool_auto_approve_total_count, ai_tool_auto_approved_count, ai_tool_policy_groups,
-    ai_update_provider, apply_cloud_sync_form_input_owned, apply_persisted_settings_input_draft,
-    cloud_sync_form_input_value_ref, current_time_millis, custom_theme_display_name,
-    delete_custom_theme_from_settings, editor_terminal_theme, editor_ui_colors, is_custom_theme_id,
-    parse_color_hex, persisted_settings_input_value, plugin_setting_draft_to_value,
-    plugin_setting_input_value, reconnect_attempt_label, reconnect_base_delay_options,
-    reconnect_delay_label, reconnect_max_attempt_options, reconnect_max_delay_options,
-    save_theme_editor_snapshot_to_settings, set_ai_tool_policy_group_approval,
-    set_ai_user_context_window, settings_multiline_line_ranges, settings_multiline_line_selection,
+    CliCompanionStatus, SETTINGS_SECTION_HEADER_ITEM_COUNT, SettingsDynamicSectionCounts,
+    SettingsInputDraftApply, TERMINAL_THEME_COLOR_FIELDS, ThemeColorField, ThemeEditorSection,
+    ThemeEditorState, UI_THEME_COLOR_FIELDS, apply_cloud_sync_form_input_owned,
+    apply_persisted_settings_input_draft, cloud_sync_form_input_value_ref,
+    custom_theme_display_name, delete_custom_theme_from_settings, editor_terminal_theme,
+    editor_ui_colors, is_custom_theme_id, parse_color_hex, persisted_settings_input_value,
+    plugin_setting_draft_to_value, plugin_setting_input_value, reconnect_attempt_label,
+    reconnect_base_delay_options, reconnect_delay_label, reconnect_max_attempt_options,
+    reconnect_max_delay_options, save_theme_editor_snapshot_to_settings,
+    settings_multiline_line_ranges, settings_multiline_line_selection,
     settings_section_list_identity as settings_model_section_list_identity,
     settings_section_list_item_count as settings_model_section_list_item_count,
     take_cloud_sync_form_input_value, theme_editor_from_settings,
@@ -38,18 +29,8 @@ use oxideterm_settings_model::{
 use oxideterm_ssh::{HostKeyStatus, UpstreamProxyConfig, probe_upstream_proxy_route};
 use oxideterm_theme::BUILT_IN_THEMES;
 
+use super::ime::WorkspaceImeTarget;
 use super::*;
-use super::{ai_state::AiSettingsViewSection, ime::WorkspaceImeTarget};
-use oxideterm_ai::{
-    AI_PROVIDER_TEMPLATES, AiProviderKeyDisplayState, AiProviderView,
-    add_provider_from_template as ai_add_provider_from_template,
-    apply_provider_model_refresh as ai_apply_provider_model_refresh, generated_provider_id,
-    provider_id as ai_provider_id, provider_key_display_state as ai_provider_key_display_state,
-    provider_string as ai_provider_string,
-    provider_template_by_type as ai_provider_template_by_type, provider_view as ai_provider_view,
-    remove_provider_at_with_scoped_settings as ai_remove_provider_at_with_scoped_settings,
-    set_active_provider_selection as ai_set_active_provider_selection,
-};
 use oxideterm_connections::{
     ConnectionImportApplyRequest, ConnectionImportDuplicateStrategy, ConnectionImportPreview,
     ConnectionImportSource, ImportedConnectionAuthType, LOCAL_SHELL_PRIVILEGE_CONNECTION_ID,
@@ -162,7 +143,6 @@ pub(in crate::workspace) const APPEARANCE_BORDER_RADIUS_MAX: f32 = 16.0; // Taur
 pub(in crate::workspace) const APPEARANCE_UI_FONT_SIZE_MIN: f32 = 11.0;
 pub(in crate::workspace) const APPEARANCE_UI_FONT_SIZE_MAX: f32 = 20.0;
 
-mod ai_page;
 mod appearance;
 mod cards;
 mod cli_companion;
@@ -197,8 +177,6 @@ mod terminal_display;
 mod update;
 mod update_ui;
 
-pub(in crate::workspace) use ai_page::AiTextEditorDialog;
-use ai_page::{AI_CONTEXT_MAX_CHAR_OPTIONS, AI_CONTEXT_VISIBLE_LINE_OPTIONS, AI_PROVIDER_SELECT_W};
 pub(in crate::workspace) use cli_companion::{
     CLI_COMPANION_COMMAND_NAME, LEGACY_CLI_COMPANION_COMMAND_NAME, cli_install_path,
 };

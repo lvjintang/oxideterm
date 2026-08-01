@@ -916,10 +916,6 @@ impl WorkspaceApp {
             {
                 return Some(WorkspaceImeTarget::Settings(input));
             }
-
-            if let Some(input) = self.ai_entity.read(cx).focused_settings_input() {
-                return Some(WorkspaceImeTarget::Settings(input));
-            }
         }
 
         let legacy_settings_input_visible = settings_tab_visible
@@ -1024,50 +1020,6 @@ impl WorkspaceApp {
             && let Some(input) = self.sftp_view.read(cx).focused_input()
         {
             return Some(WorkspaceImeTarget::Sftp(input));
-        }
-
-        let terminal_inline_panel = self.ai_entity.read(cx).terminal_inline_panel();
-        if (self.ai_sidebar_visible() || terminal_inline_panel.open)
-            && self.ai_entity.read(cx).model_selector_open()
-            && self.ai_entity.read(cx).model_selector_search_focused()
-        {
-            return Some(WorkspaceImeTarget::AiModelSelectorSearch);
-        }
-
-        if terminal_inline_panel.open && terminal_inline_panel.prompt_focused {
-            return Some(WorkspaceImeTarget::AiInlinePrompt);
-        }
-
-        if self.ai_sidebar_visible()
-            && self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .renaming_conversation_id
-                .is_some()
-            && self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .renaming_conversation_focused
-        {
-            return Some(WorkspaceImeTarget::AiConversationRename);
-        }
-
-        if self.ai_sidebar_visible() && self.ai_entity.read(cx).chat_ui().input_focused {
-            return Some(WorkspaceImeTarget::AiChatInput);
-        }
-
-        if self.ai_sidebar_visible()
-            && self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .editing_message_id
-                .is_some()
-            && self.ai_entity.read(cx).chat_ui().editing_message_focused
-        {
-            return Some(WorkspaceImeTarget::AiMessageEdit);
         }
 
         if let Some(key) = self.plugin_ui_state(cx).focused_input
@@ -1693,7 +1645,6 @@ impl WorkspaceApp {
             WorkspaceImeTarget::Settings(
                 SettingsInput::TerminalCommandBarFocusHandoff
                 | SettingsInput::TerminalCommandSpecsJson
-                | SettingsInput::AiMcpArgs
                 | SettingsInput::ManagedKeyPastePrivateKey,
             ) => {
                 // These controls are painted with the terminal/settings mono
@@ -1818,13 +1769,6 @@ impl WorkspaceApp {
                         .read(cx)
                         .settings_entity_input_value(input)
                         .map(|value| ime_text_snapshot(target, value))
-                } else if self.ai_entity.read(cx).focused_settings_input() == Some(input) {
-                    // Platform IME receives only a length-preserving projection
-                    // for secrets; the Entity remains the sole plaintext owner.
-                    self.ai_entity
-                        .read(cx)
-                        .settings_input_value(input)
-                        .map(|value| ime_text_snapshot(target, value))
                 } else if self.focused_settings_input == Some(input) {
                     Some(ime_text_snapshot(target, &self.settings_input_draft))
                 } else {
@@ -1865,50 +1809,11 @@ impl WorkspaceApp {
                     None
                 }
             }
-            WorkspaceImeTarget::AiModelSelectorSearch => self
-                .ai_entity
-                .read(cx)
-                .model_selector_search_focused()
-                .then(|| {
-                    self.ai_entity
-                        .read(cx)
-                        .model_selector_search_query()
-                        .to_owned()
-                }),
-            WorkspaceImeTarget::AiInlinePrompt => {
-                let panel = self.ai_entity.read(cx).terminal_inline_panel();
-                panel.prompt_focused.then(|| panel.prompt.clone())
-            }
-            WorkspaceImeTarget::AiChatInput => self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .input_focused
-                .then(|| self.ai_entity.read(cx).chat_ui().draft.clone()),
-            WorkspaceImeTarget::AiConversationRename => self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .renaming_conversation_focused
-                .then(|| {
-                    self.ai_entity
-                        .read(cx)
-                        .chat_ui()
-                        .renaming_conversation_draft
-                        .clone()
-                }),
-            WorkspaceImeTarget::AiMessageEdit => self
-                .ai_entity
-                .read(cx)
-                .chat_ui()
-                .editing_message_focused
-                .then(|| {
-                    self.ai_entity
-                        .read(cx)
-                        .chat_ui()
-                        .editing_message_draft
-                        .clone()
-                }),
+            WorkspaceImeTarget::AiModelSelectorSearch
+            | WorkspaceImeTarget::AiInlinePrompt
+            | WorkspaceImeTarget::AiChatInput
+            | WorkspaceImeTarget::AiConversationRename
+            | WorkspaceImeTarget::AiMessageEdit => None,
             WorkspaceImeTarget::PluginControl { key, .. } => self
                 .native_plugin_ui_control_is_visible(key, cx)
                 .then(|| {
@@ -2079,19 +1984,6 @@ impl WorkspaceApp {
                 keystroke.key.as_str(),
                 "home" | "end" | "up" | "arrowup" | "down" | "arrowdown" | "pageup" | "pagedown"
             )
-        {
-            return false;
-        }
-        if target == WorkspaceImeTarget::AiChatInput
-            && !keystroke.modifiers.shift
-            && !keystroke.modifiers.platform
-            && !keystroke.modifiers.alt
-            && !keystroke.modifiers.control
-            && matches!(
-                keystroke.key.as_str(),
-                "up" | "arrowup" | "down" | "arrowdown"
-            )
-            && !self.ai_chat_autocomplete_items(cx).is_empty()
         {
             return false;
         }
@@ -2644,10 +2536,6 @@ impl WorkspaceApp {
                     self.settings_workspace.update(cx, |settings, cx| {
                         settings.replace_settings_entity_input(input, replacement_range, text, cx);
                     });
-                } else if self.ai_entity.read(cx).focused_settings_input() == Some(input) {
-                    self.ai_entity.update(cx, |ai, cx| {
-                        ai.replace_settings_input(input, replacement_range, text, cx);
-                    });
                 } else if self.focused_settings_input == Some(input) {
                     replace_utf16(&mut self.settings_input_draft, replacement_range, text);
                     self.apply_settings_input_draft(input, cx);
@@ -2705,60 +2593,11 @@ impl WorkspaceApp {
                     cx.notify();
                 }
             }
-            WorkspaceImeTarget::AiModelSelectorSearch => {
-                if self.ai_entity.read(cx).model_selector_search_focused() {
-                    self.ai_entity.update(cx, |ai, _cx| {
-                        ai.replace_model_selector_search(replacement_range, text);
-                    });
-                    // Search changes rebuild the visible model rows; clear the
-                    // Radix-style active item so keyboard focus cannot point at
-                    // a filtered-out model.
-                    self.show_active_input_caret(cx);
-                    cx.notify();
-                }
-            }
-            WorkspaceImeTarget::AiInlinePrompt => {
-                let changed = self.ai_entity.update(cx, |ai, _cx| {
-                    let panel = ai.terminal_inline_panel_mut();
-                    if !panel.prompt_focused {
-                        return false;
-                    }
-                    replace_utf16(&mut panel.prompt, replacement_range, text);
-                    panel.error = None;
-                    true
-                });
-                if changed {
-                    self.show_active_input_caret(cx);
-                    cx.notify();
-                }
-            }
-            WorkspaceImeTarget::AiChatInput => {
-                let changed = self
-                    .ai_entity
-                    .update(cx, |ai, _cx| ai.replace_chat_input(replacement_range, text));
-                if changed {
-                    self.show_active_input_caret(cx);
-                    cx.notify();
-                }
-            }
-            WorkspaceImeTarget::AiConversationRename => {
-                let changed = self.ai_entity.update(cx, |ai, _cx| {
-                    ai.replace_conversation_rename(replacement_range, text)
-                });
-                if changed {
-                    self.show_active_input_caret(cx);
-                    cx.notify();
-                }
-            }
-            WorkspaceImeTarget::AiMessageEdit => {
-                let changed = self.ai_entity.update(cx, |ai, _cx| {
-                    ai.replace_message_edit(replacement_range, text)
-                });
-                if changed {
-                    self.show_active_input_caret(cx);
-                    cx.notify();
-                }
-            }
+            WorkspaceImeTarget::AiModelSelectorSearch
+            | WorkspaceImeTarget::AiInlinePrompt
+            | WorkspaceImeTarget::AiChatInput
+            | WorkspaceImeTarget::AiConversationRename
+            | WorkspaceImeTarget::AiMessageEdit => {}
             WorkspaceImeTarget::PluginControl { key, .. } => {
                 if self.plugin_ui_state(cx).focused_input == Some(key)
                     && self.native_plugin_ui_control_is_visible(key, cx)

@@ -1486,20 +1486,9 @@ impl WorkspaceApp {
     pub(in crate::workspace) fn oxide_export_portable_secret_count(
         &self,
         dialog: &OxideExportDialogState,
-        cx: &App,
+        _cx: &App,
     ) -> usize {
-        if !dialog.include_portable_secrets {
-            return 0;
-        }
-        oxideterm_ai::provider_views(&self.settings_store.settings().ai.providers)
-            .into_iter()
-            .filter(|provider| {
-                self.ai_entity
-                    .read(cx)
-                    .key_store()
-                    .has_provider_key(&provider.id)
-            })
-            .count()
+        0
     }
 
     pub(super) fn oxide_export_preflight(
@@ -1766,35 +1755,7 @@ impl WorkspaceApp {
         } else {
             Vec::new()
         };
-        let portable_secrets = if dialog.include_portable_secrets {
-            let provider_ids =
-                oxideterm_ai::provider_views(&self.settings_store.settings().ai.providers)
-                    .into_iter()
-                    .map(|provider| provider.id)
-                    .filter(|provider_id| {
-                        self.ai_entity
-                            .read(cx)
-                            .key_store()
-                            .has_provider_key(provider_id)
-                    })
-                    .collect::<Vec<_>>();
-            self.ai_entity
-                .read(cx)
-                .key_store()
-                .get_provider_keys(&provider_ids)
-                .map_err(|error| error.to_string())?
-                .into_iter()
-                .map(
-                    |(id, secret)| oxideterm_connections::oxide_file::EncryptedPortableSecret {
-                        kind: "ai_provider_key".to_string(),
-                        id,
-                        secret,
-                    },
-                )
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let portable_secrets = Vec::new();
         Ok(OxideExportOptions {
             description: (!dialog.description.trim().is_empty())
                 .then(|| dialog.description.trim().to_string()),
@@ -1948,37 +1909,8 @@ impl WorkspaceApp {
         envelope: &mut ImportResultEnvelope,
         cx: &mut Context<Self>,
     ) {
-        let total = envelope.portable_secrets.len();
-        if total == 0 {
-            return;
-        }
-
-        let mut imported = 0usize;
-        for secret in envelope.portable_secrets.drain(..) {
-            if secret.kind != "ai_provider_key" || secret.id.trim().is_empty() {
-                envelope.errors.push(format!(
-                    "Unsupported portable secret kind '{}' for id '{}'",
-                    secret.kind, secret.id
-                ));
-                continue;
-            }
-
-            match self
-                .ai_entity
-                .read(cx)
-                .key_store()
-                .store_provider_key(&secret.id, secret.secret)
-            {
-                Ok(()) => imported += 1,
-                Err(error) => envelope.errors.push(format!(
-                    "Failed to import portable secret '{}': {error}",
-                    secret.id
-                )),
-            }
-        }
-
-        envelope.imported_portable_secrets = imported;
-        envelope.skipped_portable_secrets = total.saturating_sub(imported);
+        envelope.skipped_portable_secrets = envelope.portable_secrets.len();
+        envelope.portable_secrets.clear();
     }
 }
 

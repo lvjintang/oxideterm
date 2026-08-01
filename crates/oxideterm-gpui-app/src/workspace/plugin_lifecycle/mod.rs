@@ -61,7 +61,6 @@ use super::delivery;
 #[cfg(test)]
 use oxideterm_plugin_host_api::terminal::NativePluginTerminalNodeSnapshot;
 use oxideterm_plugin_host_api::{
-    ai::*,
     backend::*,
     catalog::{allowed_host_apis_for_capabilities, is_supported_host_api_capability},
     forwarding::{native_plugin_forward_response, native_plugin_forward_saved_forwards},
@@ -674,16 +673,6 @@ impl WorkspaceApp {
             })
     }
 
-    pub(super) fn native_plugin_ai_snapshot(&self, cx: &App) -> Value {
-        let settings = self.settings_store.settings();
-        native_plugin_ai_snapshot_value(
-            &self.ai_entity.read(cx).conversation_state(),
-            &settings.ai.providers,
-            settings.ai.active_provider_id.as_deref(),
-            &settings.ai.model_context_windows,
-        )
-    }
-
     pub(super) fn native_plugin_last_event_log_id(&self) -> u64 {
         self.notification_center
             .event_log
@@ -764,14 +753,6 @@ impl WorkspaceApp {
                 self.native_plugin_ide_snapshot(cx),
             ));
         }
-        if self
-            .has_native_plugin_subscription(super::plugin_host::NATIVE_PLUGIN_AI_MESSAGE_EVENT, cx)
-        {
-            samples.push((
-                plugin_entity::PluginSubscriptionSample::Ai,
-                self.native_plugin_ai_snapshot(cx),
-            ));
-        }
         let event_log_last_id = self
             .has_native_plugin_subscription(
                 super::plugin_host::NATIVE_PLUGIN_EVENT_LOG_ENTRY_EVENT,
@@ -813,9 +794,6 @@ impl WorkspaceApp {
                 }
                 plugin_entity::PluginSubscriptionSample::Ide => {
                     self.emit_native_plugin_ide_if_changed(cx)
-                }
-                plugin_entity::PluginSubscriptionSample::Ai => {
-                    self.emit_native_plugin_ai_if_changed(cx)
                 }
                 plugin_entity::PluginSubscriptionSample::EventLog => {
                     self.emit_native_plugin_event_log_entries(cx)
@@ -1165,27 +1143,6 @@ impl WorkspaceApp {
         }
     }
 
-    fn emit_native_plugin_ai_if_changed(&mut self, cx: &mut Context<Self>) {
-        let next = self.native_plugin_ai_snapshot(cx);
-        let (previous, next) = self.plugin_entity.update(cx, |plugins, _cx| {
-            plugins.update_subscription_snapshot(plugin_entity::PluginSubscriptionSample::Ai, next)
-        });
-        let Some(previous) = previous else {
-            return;
-        };
-        let previous_counts = native_plugin_ai_message_count_map(&previous);
-
-        for event in native_plugin_ai_new_message_events(&next, &previous_counts) {
-            // AI message events intentionally omit message content; plugins can
-            // explicitly request sanitized history through ctx.ai.getMessages.
-            self.emit_native_plugin_event_to_subscribers(
-                super::plugin_host::NATIVE_PLUGIN_AI_MESSAGE_EVENT,
-                event,
-                cx,
-            );
-        }
-    }
-
     fn emit_native_plugin_event_log_entries(&mut self, cx: &mut Context<Self>) {
         let next_last_id = self.native_plugin_last_event_log_id();
         let last_seen = self.plugin_entity.update(cx, |plugins, _cx| {
@@ -1432,7 +1389,6 @@ impl WorkspaceApp {
         let profiler_registry = self.host_tools.read(cx).profiler_registry().clone();
         let profiler_node_connection_ids = native_plugin_profiler_node_connection_ids(self);
         let ide_snapshot = self.native_plugin_ide_snapshot(cx);
-        let ai_snapshot = self.native_plugin_ai_snapshot(cx);
         let forward_valid_owner_connection_ids = self
             .connection_store
             .connections()
@@ -1455,7 +1411,8 @@ impl WorkspaceApp {
                 .unwrap_or_default();
         let sync_plugin_settings_revisions =
             native_plugin_settings_revision_map(&sync_plugin_settings);
-        let plugin_secret_store = self.ai_entity.read(cx).key_store().clone();
+        let plugin_secret_store =
+            oxideterm_secret_store::ScopedSecretStore::new("com.oxideterm.ai");
         let telnet_transport_plugins = self
             .plugin_entity
             .read(cx)
@@ -1571,9 +1528,6 @@ impl WorkspaceApp {
             }
             if call.namespace == "ide" {
                 return Some(native_plugin_ide_response(call, &ide_snapshot));
-            }
-            if call.namespace == "ai" {
-                return Some(native_plugin_ai_response(call, &ai_snapshot));
             }
             if call.namespace == "terminal"
                 && matches!(

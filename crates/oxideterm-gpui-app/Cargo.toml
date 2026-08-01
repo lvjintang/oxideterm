@@ -23,7 +23,6 @@ image.workspace = true
 oxideterm-backend-classification = { path = "../oxideterm-backend-classification" }
 oxideterm-ai = { path = "../oxideterm-ai" }
 oxideterm-ai-tasks = { path = "../oxideterm-ai-tasks" }
-oxideterm-acp-adapter = { path = "../oxideterm-acp-adapter" }
 oxideterm-acp-host-tools = { path = "../oxideterm-acp-host-tools" }
 oxideterm-atomic-file = { path = "../oxideterm-atomic-file" }
 oxideterm-app-lock = { path = "../oxideterm-app-lock" }
@@ -64,6 +63,7 @@ oxideterm-settings-model = { path = "../oxideterm-settings-model" }
 oxideterm-skills = { path = "../oxideterm-skills" }
 oxideterm-session-adapter = { path = "../oxideterm-session-adapter" }
 oxideterm-sftp = { path = "../oxideterm-sftp" }
+oxideterm-secret-store = { path = "../oxideterm-secret-store" }
 oxideterm-ssh-launch = { path = "../oxideterm-ssh-launch" }
 oxideterm-ssh = { path = "../oxideterm-ssh" }
 oxideterm-terminal = { path = "../oxideterm-terminal" }

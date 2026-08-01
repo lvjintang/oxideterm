@@ -6,9 +6,9 @@ use std::{
     io::{self, Read},
 };
 
-use oxideterm_ai::AiProviderKeyStore;
 use oxideterm_cloud_sync::{secret_keys, secrets::CloudSyncKeychainSecretProvider};
 use oxideterm_connections::{ConnectionStore, SaveConnectionRequest, SavedAuth, SecretString};
+use oxideterm_secret_store::ScopedSecretStore;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroizing;
 
@@ -91,26 +91,16 @@ pub fn run(command: SecretsCommand) -> CliResult<i32> {
 fn status(args: SecretsStatusArgs) -> CliResult<()> {
     let mut statuses = Vec::new();
     match args.scope {
-        Some(SecretScopeArg::Ai) => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            let store = AiProviderKeyStore::new();
-            statuses.push(SecretStatus {
-                scope: "ai",
-                id: Some(id.clone()),
-                key: None,
-                configured: store.has_provider_key(&id),
-            });
-        }
         Some(SecretScopeArg::Plugin) => {
             let plugin_id = required_arg(args.plugin_id.as_deref(), "--plugin-id", args.json)?;
             let key = required_arg(args.key.as_deref(), "--key", args.json)?;
             let account_id = plugin_secret_account_id(&plugin_id, &key, args.json)?;
-            let store = AiProviderKeyStore::new();
+            let store = ScopedSecretStore::new("com.oxideterm.ai");
             statuses.push(SecretStatus {
                 scope: "plugin",
                 id: Some(plugin_id),
                 key: Some(key),
-                configured: store.has_provider_key(&account_id),
+                configured: store.exists(&account_id).unwrap_or(false),
             });
         }
         Some(SecretScopeArg::CloudSync) => {
@@ -118,16 +108,6 @@ fn status(args: SecretsStatusArgs) -> CliResult<()> {
         }
         Some(SecretScopeArg::Connection) => {
             statuses.extend(connection_statuses(args.id.as_deref(), args.json)?);
-        }
-        Some(SecretScopeArg::Portable) => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            let store = AiProviderKeyStore::new();
-            statuses.push(SecretStatus {
-                scope: "portable",
-                id: Some(id.clone()),
-                key: Some(args.key.unwrap_or_else(|| "ai_provider_key".to_string())),
-                configured: store.has_provider_key(&id),
-            });
         }
         None => {
             statuses.extend(cloud_sync_statuses(None, args.json)?);
@@ -140,20 +120,12 @@ fn status(args: SecretsStatusArgs) -> CliResult<()> {
 fn set(args: SecretsSetArgs) -> CliResult<()> {
     let value = read_secret_value(args.stdin, args.env.as_deref(), args.json)?;
     match args.scope {
-        SecretScopeArg::Ai => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            // The provider key enters the OS keychain as Zeroizing<String> and is never echoed.
-            AiProviderKeyStore::new()
-                .store_provider_key(&id, value)
-                .map_err(|error| runtime_error(error, args.json))?;
-            write_secret_response(args.json, "ai", Some(id), None, false, true)
-        }
         SecretScopeArg::Plugin => {
             let plugin_id = required_arg(args.plugin_id.as_deref(), "--plugin-id", args.json)?;
             let key = required_arg(args.key.as_deref(), "--key", args.json)?;
             let account_id = plugin_secret_account_id(&plugin_id, &key, args.json)?;
-            AiProviderKeyStore::new()
-                .store_provider_key(&account_id, value)
+            ScopedSecretStore::new("com.oxideterm.ai")
+                .store(&account_id, value)
                 .map_err(|error| runtime_error(error, args.json))?;
             write_secret_response(args.json, "plugin", Some(plugin_id), Some(key), false, true)
         }
@@ -168,40 +140,17 @@ fn set(args: SecretsSetArgs) -> CliResult<()> {
             write_connection_secret(&id, &key, Some(value), args.json)?;
             write_secret_response(args.json, "connection", Some(id), Some(key), false, true)
         }
-        SecretScopeArg::Portable => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            validate_portable_secret_kind(args.key.as_deref(), args.json)?;
-            // Portable AI-provider secrets use the same keychain entry that .oxide export encrypts.
-            AiProviderKeyStore::new()
-                .store_provider_key(&id, value)
-                .map_err(|error| runtime_error(error, args.json))?;
-            write_secret_response(
-                args.json,
-                "portable",
-                Some(id),
-                Some("ai_provider_key".to_string()),
-                false,
-                true,
-            )
-        }
     }
 }
 
 fn clear(args: SecretsClearArgs) -> CliResult<()> {
     match args.scope {
-        SecretScopeArg::Ai => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            AiProviderKeyStore::new()
-                .delete_provider_key(&id)
-                .map_err(|error| runtime_error(error, args.json))?;
-            write_secret_response(args.json, "ai", Some(id), None, true, false)
-        }
         SecretScopeArg::Plugin => {
             let plugin_id = required_arg(args.plugin_id.as_deref(), "--plugin-id", args.json)?;
             let key = required_arg(args.key.as_deref(), "--key", args.json)?;
             let account_id = plugin_secret_account_id(&plugin_id, &key, args.json)?;
-            AiProviderKeyStore::new()
-                .delete_provider_key(&account_id)
+            ScopedSecretStore::new("com.oxideterm.ai")
+                .delete(&account_id)
                 .map_err(|error| runtime_error(error, args.json))?;
             write_secret_response(args.json, "plugin", Some(plugin_id), Some(key), true, false)
         }
@@ -215,21 +164,6 @@ fn clear(args: SecretsClearArgs) -> CliResult<()> {
             let key = args.key.unwrap_or_else(|| "password".to_string());
             write_connection_secret(&id, &key, None, args.json)?;
             write_secret_response(args.json, "connection", Some(id), Some(key), true, false)
-        }
-        SecretScopeArg::Portable => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            validate_portable_secret_kind(args.key.as_deref(), args.json)?;
-            AiProviderKeyStore::new()
-                .delete_provider_key(&id)
-                .map_err(|error| runtime_error(error, args.json))?;
-            write_secret_response(
-                args.json,
-                "portable",
-                Some(id),
-                Some("ai_provider_key".to_string()),
-                true,
-                false,
-            )
         }
     }
 }
@@ -278,18 +212,12 @@ fn import(args: SecretsImportArgs) -> CliResult<()> {
 
 fn set_imported_secret(args: SecretsSetArgs, value: Zeroizing<String>) -> CliResult<()> {
     match args.scope {
-        SecretScopeArg::Ai => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            AiProviderKeyStore::new()
-                .store_provider_key(&id, value)
-                .map_err(|error| runtime_error(error, args.json))
-        }
         SecretScopeArg::Plugin => {
             let plugin_id = required_arg(args.plugin_id.as_deref(), "--plugin-id", args.json)?;
             let key = required_arg(args.key.as_deref(), "--key", args.json)?;
             let account_id = plugin_secret_account_id(&plugin_id, &key, args.json)?;
-            AiProviderKeyStore::new()
-                .store_provider_key(&account_id, value)
+            ScopedSecretStore::new("com.oxideterm.ai")
+                .store(&account_id, value)
                 .map_err(|error| runtime_error(error, args.json))
         }
         SecretScopeArg::CloudSync => {
@@ -301,27 +229,6 @@ fn set_imported_secret(args: SecretsSetArgs, value: Zeroizing<String>) -> CliRes
             let key = args.key.unwrap_or_else(|| "password".to_string());
             write_connection_secret(&id, &key, Some(value), args.json)
         }
-        SecretScopeArg::Portable => {
-            let id = required_arg(args.id.as_deref(), "--id", args.json)?;
-            validate_portable_secret_kind(args.key.as_deref(), args.json)?;
-            // Portable secrets decrypt into AI provider keychain entries, matching .oxide import.
-            AiProviderKeyStore::new()
-                .store_provider_key(&id, value)
-                .map_err(|error| runtime_error(error, args.json))
-        }
-    }
-}
-
-fn validate_portable_secret_kind(key: Option<&str>, json: bool) -> CliResult<()> {
-    let key = key.unwrap_or("ai_provider_key");
-    if key == "ai_provider_key" {
-        Ok(())
-    } else {
-        Err(CliError::new(
-            "portable_secret_kind_invalid",
-            "only portable ai_provider_key secrets are supported",
-            json,
-        ))
     }
 }
 

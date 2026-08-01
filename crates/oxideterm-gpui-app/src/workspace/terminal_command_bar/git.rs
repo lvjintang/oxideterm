@@ -422,7 +422,6 @@ impl WorkspaceApp {
 
     pub(super) fn render_terminal_git_commit_section(&self, cx: &mut Context<Self>) -> AnyElement {
         let mut list = div().flex().flex_col().gap(px(2.0));
-        list = list.child(self.render_terminal_git_ai_commit_action_row(cx));
         for action in [
             TerminalGitRepositoryAction::CommitVerbose,
             TerminalGitRepositoryAction::Commit,
@@ -1169,6 +1168,7 @@ impl WorkspaceApp {
             .into_any_element()
     }
 
+    #[cfg(any())]
     pub(super) fn render_terminal_git_ai_commit_action_row(
         &self,
         cx: &mut Context<Self>,

@@ -181,9 +181,6 @@ impl WorkspaceApp {
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let active_tab = self.settings_workspace.read(cx).route_snapshot().active_tab;
-        if active_tab == SettingsTab::Ai {
-            return self.render_settings_ai_section_item(index, cx);
-        }
 
         let section_index = index.saturating_sub(SETTINGS_SECTION_HEADER_ITEM_COUNT);
         let child = if index == 0 {
@@ -193,106 +190,6 @@ impl WorkspaceApp {
         };
 
         self.wrap_settings_section_list_item(index, child, cx)
-    }
-
-    pub(in crate::workspace) fn render_settings_ai_section_item(
-        &mut self,
-        index: usize,
-        cx: &mut Context<Self>,
-    ) -> AnyElement {
-        let item = if index == 0 {
-            self.render_settings_virtual_header(SettingsTab::Ai, cx)
-        } else {
-            self.render_settings_ai_page_section(index - 1, cx)
-        };
-
-        self.wrap_settings_section_list_item(index, item, cx)
-    }
-
-    pub(in crate::workspace) fn render_settings_ai_page_section(
-        &mut self,
-        section_index: usize,
-        cx: &mut Context<Self>,
-    ) -> AnyElement {
-        if section_index == 0 {
-            return self.ai_page_switcher(cx);
-        }
-
-        let page_section_index = section_index - 1;
-        let ai_page = self.settings_workspace.read(cx).route_snapshot().ai_page;
-        match (ai_page, page_section_index) {
-            (AiSettingsPage::General, 0) => {
-                let settings = self.settings_store.settings();
-                self.ai_general_settings_card(settings, cx)
-            }
-            (AiSettingsPage::General, 1) => self.ai_privacy_settings_card(),
-            (AiSettingsPage::Providers, 0) => {
-                let provider_views = self.ai_provider_views_for_settings_render(cx);
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_provider_settings_section(&provider_views, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Agents, 0) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_acp_agents_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Context, 0) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_context_controls_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Context, 1) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_system_prompt_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Context, 2) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_memory_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Context, 3) => {
-                let settings = self.settings_store.settings();
-                let provider_views = ai_provider_views(settings);
-                self.ai_disabled_settings_card(
-                    self.ai_model_context_windows_section(settings, &provider_views, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Tools, 0) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_tool_use_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Tools, 1) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_skills_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            (AiSettingsPage::Tools, 2) => {
-                let settings = self.settings_store.settings();
-                self.ai_disabled_settings_card(
-                    self.ai_mcp_servers_section(settings, cx),
-                    settings.ai.enabled,
-                )
-            }
-            _ => div().into_any_element(),
-        }
     }
 
     pub(in crate::workspace) fn wrap_settings_section_list_item(
@@ -349,15 +246,6 @@ impl WorkspaceApp {
             .into_any_element()
     }
 
-    pub(in crate::workspace) fn ai_provider_views_for_settings_render(
-        &mut self,
-        cx: &mut Context<Self>,
-    ) -> Vec<AiProviderView> {
-        let provider_views = ai_provider_views(self.settings_store.settings());
-        self.ensure_ai_provider_key_statuses_for_views(&provider_views, cx);
-        provider_views
-    }
-
     pub(in crate::workspace) fn sync_settings_section_list_state(&mut self, cx: &App) {
         let spec = self.settings_section_list_spec(cx);
         let identity = self.settings_section_list_identity(cx);
@@ -375,17 +263,10 @@ impl WorkspaceApp {
         &self,
         cx: &App,
     ) -> TauriVirtualListSpec {
-        if self.settings_workspace.read(cx).route_snapshot().active_tab == SettingsTab::Ai {
-            TauriVirtualListSpec::new(
-                px(AI_SETTINGS_SECTION_ESTIMATED_HEIGHT),
-                SETTINGS_SECTION_LIST_OVERSCAN,
-            )
-        } else {
-            TauriVirtualListSpec::new(
-                px(SETTINGS_SECTION_LIST_ESTIMATED_HEIGHT),
-                SETTINGS_SECTION_LIST_OVERSCAN,
-            )
-        }
+        TauriVirtualListSpec::new(
+            px(SETTINGS_SECTION_LIST_ESTIMATED_HEIGHT),
+            SETTINGS_SECTION_LIST_OVERSCAN,
+        )
     }
 
     pub(in crate::workspace) fn settings_section_list_identity(&self, cx: &App) -> String {
@@ -535,52 +416,6 @@ impl WorkspaceApp {
                     status.is_unlocked.hash(&mut hasher);
                 }
             }
-            SettingsTab::Ai => {
-                format!("{:?}", route.ai_page).hash(&mut hasher);
-                // Hash expansion state only into the virtual row whose height
-                // can change. The compact prompt and memory cards stay stable.
-                match (route.ai_page, index) {
-                    (AiSettingsPage::Providers, 2) => {
-                        settings.ai.providers.len().hash(&mut hasher);
-                        self.ai_entity
-                            .read(cx)
-                            .hash_settings_provider_layout(&mut hasher);
-                    }
-                    (AiSettingsPage::Agents, 2) => {
-                        settings.ai.acp_agents.len().hash(&mut hasher);
-                    }
-                    (AiSettingsPage::Context, 5) => {
-                        settings.ai.providers.len().hash(&mut hasher);
-                        self.ai_entity
-                            .read(cx)
-                            .hash_settings_context_layout(&mut hasher);
-                    }
-                    (AiSettingsPage::Tools, 2) => {
-                        self.ai_entity
-                            .read(cx)
-                            .settings_section_expanded(AiSettingsViewSection::ToolUse)
-                            .hash(&mut hasher);
-                    }
-                    (AiSettingsPage::Tools, 3) => {
-                        let registry = self.skill_registry.read();
-                        for skill in registry.records() {
-                            skill.id.hash(&mut hasher);
-                            skill.enabled.hash(&mut hasher);
-                            skill.content_hash.hash(&mut hasher);
-                        }
-                        registry.diagnostics().len().hash(&mut hasher);
-                    }
-                    _ => {}
-                }
-            }
-            SettingsTab::Knowledge => {
-                let ai = self.ai_entity.read(cx);
-                ai.knowledge_selected_collection_id().hash(&mut hasher);
-                ai.knowledge_error().is_some().hash(&mut hasher);
-                ai.knowledge_import_progress().hash(&mut hasher);
-                ai.knowledge_embedding_progress().hash(&mut hasher);
-                ai.knowledge_reindex_progress().hash(&mut hasher);
-            }
             SettingsTab::Keybindings => {
                 // The toolbar owns the moving scope indicator. Keep row zero
                 // mounted while filtered table rows are replaced underneath it.
@@ -610,17 +445,12 @@ impl WorkspaceApp {
         cx: &App,
     ) -> SettingsDynamicSectionCounts {
         let route = self.settings_workspace.read(cx).route_snapshot();
-        let knowledge_has_selected_collection = if route.active_tab == SettingsTab::Knowledge {
-            self.knowledge_has_selected_collection(cx)
-        } else {
-            false
-        };
         SettingsDynamicSectionCounts {
             terminal_page: route.terminal_page,
             ai_page: route.ai_page,
             visible_keybinding_scope_count: self.visible_keybinding_scope_count(cx),
-            knowledge_has_error: self.ai_entity.read(cx).knowledge_error().is_some(),
-            knowledge_has_selected_collection,
+            knowledge_has_error: false,
+            knowledge_has_selected_collection: false,
         }
     }
 
@@ -656,17 +486,6 @@ impl WorkspaceApp {
         .count()
     }
 
-    pub(in crate::workspace) fn knowledge_has_selected_collection(&self, cx: &App) -> bool {
-        let rag_store = self.ai_entity.read(cx).rag_store();
-        let collections = oxideterm_ai::rag_list_collections(&rag_store, None).unwrap_or_default();
-        self.ai_entity
-            .read(cx)
-            .knowledge_selected_collection_id()
-            .filter(|id| collections.iter().any(|collection| collection.id == *id))
-            .or_else(|| collections.first().map(|collection| collection.id.as_str()))
-            .is_some()
-    }
-
     pub(in crate::workspace) fn render_settings_tab_section(
         &mut self,
         tab: SettingsTab,
@@ -688,8 +507,6 @@ impl WorkspaceApp {
             SettingsTab::Network => self.settings_network_section(section_index, cx),
             SettingsTab::Sftp => self.settings_sftp_section(section_index, cx),
             SettingsTab::Ide => self.settings_ide_section(section_index, cx),
-            SettingsTab::Ai => div().into_any_element(),
-            SettingsTab::Knowledge => self.settings_knowledge_section(section_index, cx),
             SettingsTab::Keybindings => self.settings_keybindings_section(section_index, cx),
             SettingsTab::Help => self.settings_help_section(section_index, cx),
         }
@@ -1072,7 +889,6 @@ impl WorkspaceApp {
         // Re-apply the same runtime side effects used by edit_settings instead
         // of relying on stale in-memory settings or browser-style stores.
         self.apply_loaded_settings_to_runtime(&settings, cx);
-        self.refresh_ai_skill_registry();
         self.emit_native_plugin_settings_events(&previous_settings, &settings, cx);
         self.queue_cloud_sync_dirty_refresh(cx);
         self.sync_tab_titles(cx);
@@ -1149,11 +965,6 @@ impl WorkspaceApp {
                 settings.terminal.command_bar.current_directory_awareness,
             );
         });
-        self.ai_entity.update(cx, |ai, _cx| {
-            ai.set_agent_fs_mode(crate::workspace::ide::node_agent_mode_from_settings(
-                &settings,
-            ));
-        });
         // Monitoring settings own recurring remote shells and page-scoped GPU work.
         self.apply_host_tool_monitoring_settings(cx);
         self.sidebar_collapsed = settings.sidebar_ui.collapsed;
@@ -1161,19 +972,8 @@ impl WorkspaceApp {
         self.context_sidebar_motion_generation =
             self.context_sidebar_motion_generation.wrapping_add(1);
         self.sidebar_rendered = !settings.sidebar_ui.collapsed;
-        self.context_sidebar_rendered = crate::workspace::sidebar::context_sidebar_panel_visible(
-            settings.sidebar_ui.ai_sidebar_collapsed,
-            settings.sidebar_ui.zen_mode,
-            settings.ai.enabled,
-            self.active_context_sidebar_panel,
-        );
-        let viewport_width = self
-            .ai_entity
-            .read(cx)
-            .chat_ui()
-            .overlay_window_size
-            .map(|size| size.0)
-            .unwrap_or(self.tokens.metrics.window_min_width);
+        self.context_sidebar_rendered = false;
+        let viewport_width = self.tokens.metrics.window_min_width;
         // External settings reloads use the same responsive limits as pointer
         // resizing, so persisted pixel widths cannot bypass the live viewport.
         self.sidebar_width = crate::workspace::sidebar::clamp_responsive_sidebar_width(
@@ -1182,15 +982,6 @@ impl WorkspaceApp {
             self.tokens.metrics.sidebar_min_width,
             self.tokens.metrics.sidebar_max_width,
         );
-        let ai_sidebar_width = crate::workspace::sidebar::clamp_responsive_sidebar_width(
-            settings.sidebar_ui.ai_sidebar_width as f32,
-            viewport_width,
-            AI_SIDEBAR_ABSOLUTE_MIN_WIDTH,
-            AI_SIDEBAR_ABSOLUTE_MAX_WIDTH,
-        );
-        self.ai_entity.update(cx, |ai, _cx| {
-            ai.set_chat_sidebar_width(ai_sidebar_width);
-        });
         let panes = self
             .tab_host
             .read(cx)

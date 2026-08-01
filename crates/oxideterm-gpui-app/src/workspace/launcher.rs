@@ -1503,9 +1503,6 @@ impl WorkspaceApp {
                 available_width -= self.sidebar_panel_width();
             }
         }
-        if self.context_sidebar_visible() {
-            available_width -= self.ai_entity.read(cx).chat_ui().sidebar_width;
-        }
         let page_padding = self.tokens.metrics.settings_content_padding;
         let grid_width = (available_width - page_padding * 2.0).max(LAUNCHER_TILE_W);
         // The Tauri launcher is a wrapping icon grid. Native virtualizes one

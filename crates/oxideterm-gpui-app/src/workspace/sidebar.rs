@@ -184,7 +184,6 @@ impl WorkspaceApp {
 }
 
 mod activity;
-mod ai;
 mod helpers;
 mod region;
 mod saved;
@@ -192,13 +191,6 @@ mod sessions;
 mod state;
 mod titlebar;
 
-#[cfg(test)]
-pub(in crate::workspace) use ai::AiCompactionDeliveryKind;
-pub(in crate::workspace) use ai::{
-    AcpApplicationToolTurn, AiCompactionDelivery, AiCompactionDeliverySender, AiInlinePanelState,
-    AiStreamDelivery, AiStreamDeliveryEvent, AiStreamDeliverySender, ai_now_ms,
-    handle_acp_application_tool_call,
-};
 use helpers::*;
 pub(in crate::workspace) use state::{
     clamp_responsive_sidebar_width, context_sidebar_panel_visible,

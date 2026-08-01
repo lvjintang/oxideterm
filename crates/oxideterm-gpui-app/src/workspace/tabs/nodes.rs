@@ -505,7 +505,6 @@ impl WorkspaceApp {
                 if let Some(node) = self.ssh_nodes.get_mut(&node_id) {
                     node.readiness = state.clone();
                 }
-                self.sync_ai_runtime_node_owner(&node_id, &state, cx);
                 if node_readiness_became_ready(previous.as_ref(), &state) {
                     // Registry readiness, not shell lifetime, restores shared
                     // forwards and completes the connection trace.
@@ -639,7 +638,6 @@ impl WorkspaceApp {
                 if let Some(node) = self.ssh_nodes.get_mut(&node_id) {
                     node.readiness = state.clone();
                 }
-                self.sync_ai_runtime_node_owner(&node_id, &state, cx);
                 if node_readiness_became_ready(previous.as_ref(), &state) {
                     self.restore_forwarding_session_for_node(&node_id, cx);
                     self.workspace_runtime.update(cx, |runtime, cx| {
@@ -740,13 +738,6 @@ impl WorkspaceApp {
                 ready,
             } => {
                 let node_id = NodeId::new(node_id);
-                self.sync_ai_runtime_sftp_owner(
-                    &node_id,
-                    connection_id,
-                    session_generation,
-                    ready,
-                    cx,
-                );
                 true
             }
             runtime_entity::NodeRuntimeEffect::TerminalEndpointChanged => {
@@ -790,6 +781,7 @@ impl WorkspaceApp {
 
     /// Bridges real NodeRouter lifecycle events into AI authority. Snapshot
     /// creation only issues leases from this owner; it never registers one.
+    #[cfg(any())]
     fn sync_ai_runtime_node_owner(
         &mut self,
         node_id: &NodeId,
@@ -825,6 +817,7 @@ impl WorkspaceApp {
 
     /// Shared SFTP lifecycle is separate from short-lived directory-listing
     /// readiness. Only a concrete shared channel generation grants authority.
+    #[cfg(any())]
     fn sync_ai_runtime_sftp_owner(
         &mut self,
         node_id: &NodeId,
@@ -885,9 +878,6 @@ impl WorkspaceApp {
             );
         for affected_node_id in &affected {
             self.ensure_workspace_ssh_node_from_runtime(affected_node_id);
-            self.ai_runtime_context.update(cx, |runtime, _cx| {
-                runtime.revoke_node_connection(affected_node_id)
-            });
             self.mark_ide_interrupted_for_node(affected_node_id, cx);
             if let Some(node) = self.ssh_nodes.get_mut(affected_node_id) {
                 node.readiness = state.clone();

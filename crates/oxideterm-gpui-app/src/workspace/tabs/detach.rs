@@ -130,7 +130,7 @@ impl WorkspaceApp {
             self.sidebar_width
         };
         let right_offset = if self.context_sidebar_visible() {
-            self.ai_entity.read(cx).chat_ui().sidebar_width
+            self.settings_store.settings().sidebar_ui.ai_sidebar_width as f32
         } else {
             0.0
         };

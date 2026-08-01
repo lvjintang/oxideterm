@@ -1,8 +1,7 @@
 // Copyright (C) 2026 AnalyseDeCircuit
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::collections::HashMap;
-
+use oxideterm_secret_store::ScopedSecretStore;
 use serde_json::{Map, Value, json};
 use zeroize::Zeroizing;
 
@@ -24,7 +23,7 @@ impl Drop for SecretHostCallOwner {
 pub(super) fn native_plugin_secret_response(
     plugin_id: &str,
     call: plugin_runtime::PluginHostCall,
-    key_store: &oxideterm_ai::AiProviderKeyStore,
+    key_store: &ScopedSecretStore,
 ) -> plugin_runtime::PluginResponse {
     let mut call = SecretHostCallOwner(call);
     let request_id = std::mem::take(&mut call.0.request_id);
@@ -46,7 +45,7 @@ fn native_plugin_secret_result(
     plugin_id: &str,
     method: &str,
     args: &mut Value,
-    key_store: &oxideterm_ai::AiProviderKeyStore,
+    key_store: &ScopedSecretStore,
 ) -> Result<Value, String> {
     match method {
         "get" => {
@@ -54,7 +53,7 @@ fn native_plugin_secret_result(
             let account_id =
                 oxideterm_plugin_host_api::secrets::plugin_secret_account_id(plugin_id, key)?;
             let secret = key_store
-                .get_provider_key(&account_id)
+                .get(&account_id)
                 .map_err(|error| format!("Failed to read plugin secret: {error}"))?;
             Ok(secret
                 .map(|secret| json!(secret.as_str()))
@@ -68,14 +67,12 @@ fn native_plugin_secret_result(
                     oxideterm_plugin_host_api::secrets::plugin_secret_account_id(plugin_id, key)?,
                 );
             }
-            let secrets = key_store
-                .get_provider_keys(&account_ids)
-                .map_err(|error| format!("Failed to read plugin secrets: {error}"))?;
-            let secret_by_account = secrets.into_iter().collect::<HashMap<_, _>>();
             let mut values = Map::new();
             for (key, account_id) in keys.iter().zip(account_ids.iter()) {
-                let value = secret_by_account
+                let value = key_store
                     .get(account_id)
+                    .map_err(|error| format!("Failed to read plugin secrets: {error}"))?
+                    .as_ref()
                     .map(|secret| json!(secret.as_str()))
                     .unwrap_or(Value::Null);
                 values.insert(key.clone(), value);
@@ -90,29 +87,27 @@ fn native_plugin_secret_result(
             let deletes_secret = value.is_empty();
             // Move the JSON string into the zeroizing owner instead of cloning
             // it for the keychain handoff.
-            key_store
-                .store_provider_key(&account_id, value)
-                .map_err(|error| {
-                    if deletes_secret {
-                        format!("Failed to delete plugin secret: {error}")
-                    } else {
-                        format!("Failed to save plugin secret: {error}")
-                    }
-                })?;
+            key_store.store(&account_id, value).map_err(|error| {
+                if deletes_secret {
+                    format!("Failed to delete plugin secret: {error}")
+                } else {
+                    format!("Failed to save plugin secret: {error}")
+                }
+            })?;
             Ok(Value::Null)
         }
         "has" => {
             let key = native_plugin_secret_key_arg(args)?;
             let account_id =
                 oxideterm_plugin_host_api::secrets::plugin_secret_account_id(plugin_id, key)?;
-            Ok(json!(key_store.has_provider_key(&account_id)))
+            Ok(json!(key_store.exists(&account_id).unwrap_or(false)))
         }
         "delete" => {
             let key = native_plugin_secret_key_arg(args)?;
             let account_id =
                 oxideterm_plugin_host_api::secrets::plugin_secret_account_id(plugin_id, key)?;
             key_store
-                .delete_provider_key(&account_id)
+                .delete(&account_id)
                 .map_err(|error| format!("Failed to delete plugin secret: {error}"))?;
             Ok(Value::Null)
         }

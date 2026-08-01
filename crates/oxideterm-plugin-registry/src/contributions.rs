@@ -11,7 +11,6 @@ pub struct NativePluginContributionStore {
     pub sidebar_panels: Vec<NativePluginSidebarContribution>,
     pub activity_bar_items: Vec<NativePluginActivityBarItemContribution>,
     pub settings: Vec<NativePluginSettingContribution>,
-    pub ai_tools: Vec<NativePluginAiToolContribution>,
     pub terminal_shortcuts: Vec<NativePluginShortcutContribution>,
     pub terminal_transports: Vec<NativePluginTransportContribution>,
     pub connection_hooks: Vec<NativePluginConnectionHookContribution>,
@@ -89,16 +88,6 @@ impl NativePluginContributionStore {
                     }
                 }));
         }
-        if let Some(ai_tools) = &contributes.ai_tools {
-            self.ai_tools
-                .extend(ai_tools.iter().cloned().map(|definition| {
-                    NativePluginAiToolContribution {
-                        plugin_id: plugin_id.clone(),
-                        plugin_name: plugin_name.clone(),
-                        definition,
-                    }
-                }));
-        }
         if let Some(hooks) = &contributes.terminal_hooks
             && let Some(shortcuts) = &hooks.shortcuts
         {
@@ -159,7 +148,6 @@ impl NativePluginContributionStore {
             + self.sidebar_panels.len()
             + self.activity_bar_items.len()
             + self.settings.len()
-            + self.ai_tools.len()
             + self.terminal_shortcuts.len()
             + self.terminal_transports.len()
             + self.connection_hooks.len()
@@ -199,35 +187,6 @@ impl NativePluginContributionStore {
             .iter()
             .find(|entry| entry.plugin_id == plugin_id && entry.definition.id == monitor_id)
             .cloned()
-    }
-
-    pub fn ai_tool_definitions(&self) -> Vec<oxideterm_ai::AiToolDefinition> {
-        self.ai_tools
-            .iter()
-            .map(|tool| {
-                let qualified_name =
-                    native_plugin_ai_tool_name(&tool.plugin_id, &tool.definition.name);
-                // Phase 2 exposes metadata to the model but keeps execution
-                // guarded by the native runtime boundary that starts in Phase 3.
-                oxideterm_ai::AiToolDefinition {
-                    name: qualified_name,
-                    description: format!(
-                        "[Plugin: {}] {}",
-                        tool.plugin_name, tool.definition.description
-                    ),
-                    parameters: tool.definition.parameters.clone().unwrap_or_else(
-                        || serde_json::json!({ "type": "object", "properties": {} }),
-                    ),
-                }
-            })
-            .collect()
-    }
-
-    pub fn ai_tool_names(&self) -> Vec<String> {
-        self.ai_tools
-            .iter()
-            .map(|tool| native_plugin_ai_tool_name(&tool.plugin_id, &tool.definition.name))
-            .collect()
     }
 
     pub fn runtime_keybinding_for_normalized_key(

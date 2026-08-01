@@ -95,9 +95,7 @@ pub struct SecretsImportArgs {
 #[value(rename_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
 pub enum SecretScopeArg {
-    Ai,
     Plugin,
     CloudSync,
     Connection,
-    Portable,
 }

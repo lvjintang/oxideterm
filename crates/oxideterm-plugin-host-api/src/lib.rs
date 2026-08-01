@@ -3,7 +3,6 @@
 
 //! Plugin-facing host API projections that do not own GPUI workspace state.
 
-pub mod ai;
 pub mod app;
 pub mod backend;
 pub mod capabilities;

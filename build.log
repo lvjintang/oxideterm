@@ -1,0 +1,907 @@
+warning: linker stdout: 正在创建库 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\derive_refineable-20d6595364dff84f.dll.lib 和对象 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\derive_refineable-20d6595364dff84f.dll.exp
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `gpui_derive_refineable` (lib) generated 1 warning
+warning: linker stdout: 正在创建库 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\gpui_macros-55cc0cc5773f9c21.dll.lib 和对象 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\gpui_macros-55cc0cc5773f9c21.dll.exp
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `gpui_macros` (lib) generated 1 warning
+warning: unused import: `PathBuf`
+ --> crates\oxideterm-x11-forwarding\src\prepare.rs:6:18
+  |
+6 |     path::{Path, PathBuf},
+  |                  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `oxideterm-x11-forwarding` (lib) generated 1 warning (run `cargo fix --lib -p oxideterm-x11-forwarding` to apply 1 suggestion)
+warning: unused imports: `PathBuf` and `Path`
+ --> crates\oxideterm-ssh\src\agent_endpoint.rs:1:17
+  |
+1 | use std::path::{Path, PathBuf};
+  |                 ^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `oxideterm-ssh` (lib) generated 1 warning (run `cargo fix --lib -p oxideterm-ssh` to apply 1 suggestion)
+warning: function `capitalize_first` is never used
+   --> crates\oxideterm-terminal\src\local_shell.rs:441:4
+    |
+441 | fn capitalize_first(value: &str) -> String {
+    |    ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `parse_process_table_for_group` is never used
+   --> crates\oxideterm-terminal\src\process.rs:298:15
+    |
+298 | pub(crate) fn parse_process_table_for_group(output: &str, process_group_id: u32) -> Option<u32> {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `parse_lsof_cwd` is never used
+   --> crates\oxideterm-terminal\src\process.rs:311:15
+    |
+311 | pub(crate) fn parse_lsof_cwd(output: &str) -> Option<PathBuf> {
+    |               ^^^^^^^^^^^^^^
+
+warning: function `cleanup_local_pty_process_tree` is never used
+  --> crates\oxideterm-terminal\src\process_lifecycle.rs:64:15
+   |
+64 | pub(crate) fn cleanup_local_pty_process_tree(_shell_pid: Option<u32>) {}
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `oxideterm-terminal` (lib) generated 4 warnings
+warning: unused import: `time::Duration`
+  --> crates\oxideterm-update\src\portable_update_helper.rs:10:5
+   |
+10 |     time::Duration,
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `shell_escape_path` is never used
+   --> crates\oxideterm-update\src\install.rs:810:4
+    |
+810 | fn shell_escape_path(path: &Path) -> String {
+    |    ^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `oxideterm-update` (lib) generated 2 warnings (run `cargo fix --lib -p oxideterm-update` to apply 1 suggestion)
+   Compiling oxideterm-gpui-app v2.0.15 (C:\Users\t\Documents\GitHub\oxideterm\crates\oxideterm-gpui-app)
+warning: unused import: `zeroize::Zeroizing`
+  --> crates\oxideterm-gpui-app\src\workspace\plugin_lifecycle\product_host_calls.rs:10:5
+   |
+10 | use zeroize::Zeroizing;
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `CheckboxOptions`, `CheckboxState`, `checkbox_with_state`, and `text_caret`
+  --> crates\oxideterm-gpui-app\src\workspace\settings.rs:50:16
+   |
+50 |     checkbox::{CheckboxOptions, CheckboxState, checkbox, checkbox_with_state},
+   |                ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^            ^^^^^^^^^^^^^^^^^^^
+...
+65 |         TextInputContentAlign, TextInputView, text_caret, text_input, text_input_anchor_probe,
+   |                                               ^^^^^^^^^^
+
+warning: unused import: `context_sidebar_panel_visible`
+   --> crates\oxideterm-gpui-app\src\workspace\sidebar.rs:196:37
+    |
+196 |     clamp_responsive_sidebar_width, context_sidebar_panel_visible,
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `provider_chat_requires_key as ai_provider_chat_requires_key`
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:10:5
+   |
+10 |     provider_chat_requires_key as ai_provider_chat_requires_key, stream_chat_completion,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `FollowMode`
+  --> crates\oxideterm-gpui-app\src\workspace.rs:93:5
+   |
+93 |     FollowMode, Image, ImageFormat, IntoElement, KeyDownEvent, KeyUpEvent, ListAlignment,
+   |     ^^^^^^^^^^
+
+warning: unused imports: `BackgroundTransferDirection`, `BackgroundTransferKind`, `BackgroundTransferSnapshot`, `BackgroundTransferState`, `SftpTransferGuard`, `TransferStrategy`, `tar_download_directory`, and `tar_upload_directory`
+   --> crates\oxideterm-gpui-app\src\workspace.rs:213:5
+    |
+213 |     BackgroundTransferDirection, BackgroundTransferKind, BackgroundTransferSnapshot,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+214 |     BackgroundTransferState, LazyProgressStore, ProgressStore, SftpTransferGuard,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^                                    ^^^^^^^^^^^^^^^^^
+215 |     SftpTransferManager, StoredTransferProgress, TransferStrategy, tar_download_directory,
+    |                                                  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+216 |     tar_upload_directory,
+    |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `sync_tauri_virtual_list_state_by_signatures`
+   --> crates\oxideterm-gpui-app\src\workspace.rs:321:5
+    |
+321 |     sync_tauri_virtual_list_state_by_signatures,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\cloud_sync\delivery.rs:476:9
+    |
+476 |         cx: &App,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\cloud_sync\preview.rs:537:9
+    |
+537 |         cx: &App,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+    --> crates\oxideterm-gpui-app\src\workspace\launcher.rs:1497:58
+     |
+1497 |     fn launcher_app_grid_columns(&self, window: &Window, cx: &App) -> usize {
+     |                                                          ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `initial_context_sidebar_width`
+  --> crates\oxideterm-gpui-app\src\workspace\root\init.rs:82:13
+   |
+82 |         let initial_context_sidebar_width = sidebar::clamp_responsive_sidebar_width(
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_initial_context_sidebar_width`
+
+warning: unused variable: `dialog`
+    --> crates\oxideterm-gpui-app\src\workspace\session_manager\oxide_actions.rs:1488:9
+     |
+1488 |         dialog: &OxideExportDialogState,
+     |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_dialog`
+
+warning: unused variable: `cx`
+    --> crates\oxideterm-gpui-app\src\workspace\session_manager\oxide_actions.rs:1669:9
+     |
+1669 |         cx: &App,
+     |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+    --> crates\oxideterm-gpui-app\src\workspace\session_manager\oxide_actions.rs:1910:9
+     |
+1910 |         cx: &mut Context<Self>,
+     |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\session_manager\views.rs:398:61
+    |
+398 |     fn session_manager_grid_columns(&self, window: &Window, cx: &App) -> (usize, usize) {
+    |                                                             ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\settings\surface.rs:264:9
+    |
+264 |         cx: &App,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+  --> crates\oxideterm-gpui-app\src\workspace\sftp\layout.rs:16:55
+   |
+16 |     fn sftp_pane_layout_width(&self, window: &Window, cx: &App) -> f32 {
+   |                                                       ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\sidebar\state.rs:323:62
+    |
+323 |     pub(in crate::workspace) fn toggle_ai_sidebar(&mut self, cx: &mut Context<Self>) -> bool {
+    |                                                              ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+   --> crates\oxideterm-gpui-app\src\workspace\tabs\detach.rs:114:9
+    |
+114 |         cx: &App,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `cx`
+    --> crates\oxideterm-gpui-app\src\workspace\tabs\navigation.rs:1071:51
+     |
+1071 |     fn tabbar_outer_width(&self, window: &Window, cx: &App) -> f32 {
+     |                                                   ^^ help: if this is intentional, prefix it with an underscore: `_cx`
+
+warning: unused variable: `connection_id`
+   --> crates\oxideterm-gpui-app\src\workspace\tabs\nodes.rs:736:17
+    |
+736 |                 connection_id,
+    |                 ^^^^^^^^^^^^^ help: try ignoring the field: `connection_id: _`
+
+warning: unused variable: `session_generation`
+   --> crates\oxideterm-gpui-app\src\workspace\tabs\nodes.rs:737:17
+    |
+737 |                 session_generation,
+    |                 ^^^^^^^^^^^^^^^^^^ help: try ignoring the field: `session_generation: _`
+
+warning: unused variable: `ready`
+   --> crates\oxideterm-gpui-app\src\workspace\tabs\nodes.rs:738:17
+    |
+738 |                 ready,
+    |                 ^^^^^ help: try ignoring the field: `ready: _`
+
+warning: unused variable: `node_id`
+   --> crates\oxideterm-gpui-app\src\workspace\tabs\nodes.rs:740:21
+    |
+740 |                 let node_id = NodeId::new(node_id);
+    |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_node_id`
+
+warning: constant `AI_SETTINGS_SECTION_ESTIMATED_HEIGHT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:329:7
+    |
+329 | const AI_SETTINGS_SECTION_ESTIMATED_HEIGHT: f32 = 360.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `AI_PROVIDER_MODEL_ROW_LIST_INITIAL_ITEM_COUNT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:330:7
+    |
+330 | const AI_PROVIDER_MODEL_ROW_LIST_INITIAL_ITEM_COUNT: usize = 0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_ROW_LIST_ESTIMATED_HEIGHT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:331:7
+    |
+331 | const AI_PROVIDER_MODEL_ROW_LIST_ESTIMATED_HEIGHT: f32 = 48.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_ROW_LIST_OVERSCAN` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:332:7
+    |
+332 | const AI_PROVIDER_MODEL_ROW_LIST_OVERSCAN: usize = 6;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_CHIP_LIST_INITIAL_ROW_COUNT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:333:7
+    |
+333 | const AI_PROVIDER_MODEL_CHIP_LIST_INITIAL_ROW_COUNT: usize = 0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_CHIPS_PER_VIRTUAL_ROW` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:334:7
+    |
+334 | const AI_PROVIDER_MODEL_CHIPS_PER_VIRTUAL_ROW: usize = 4;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_CHIP_ROW_ESTIMATED_HEIGHT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:335:7
+    |
+335 | const AI_PROVIDER_MODEL_CHIP_ROW_ESTIMATED_HEIGHT: f32 = 28.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_MODEL_CHIP_ROW_OVERSCAN` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:336:7
+    |
+336 | const AI_PROVIDER_MODEL_CHIP_ROW_OVERSCAN: usize = 6;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_CARD_LIST_INITIAL_ITEM_COUNT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:337:7
+    |
+337 | const AI_PROVIDER_CARD_LIST_INITIAL_ITEM_COUNT: usize = 0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_CARD_LIST_ESTIMATED_HEIGHT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:338:7
+    |
+338 | const AI_PROVIDER_CARD_LIST_ESTIMATED_HEIGHT: f32 = 220.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_PROVIDER_CARD_LIST_OVERSCAN` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:339:7
+    |
+339 | const AI_PROVIDER_CARD_LIST_OVERSCAN: usize = 3;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MCP_SERVER_LIST_INITIAL_ITEM_COUNT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:340:7
+    |
+340 | const AI_MCP_SERVER_LIST_INITIAL_ITEM_COUNT: usize = 0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MCP_SERVER_LIST_ESTIMATED_HEIGHT` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:341:7
+    |
+341 | const AI_MCP_SERVER_LIST_ESTIMATED_HEIGHT: f32 = 156.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MCP_SERVER_LIST_OVERSCAN` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:342:7
+    |
+342 | const AI_MCP_SERVER_LIST_OVERSCAN: usize = 4;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `AiCompactionNoticePhase` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:391:6
+    |
+391 | enum AiCompactionNoticePhase {
+    |      ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiCompactionNotice` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:397:8
+    |
+397 | struct AiCompactionNotice {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiChatInitializationError` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:405:8
+    |
+405 | struct AiChatInitializationError {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `AiChatFooterAction` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:411:6
+    |
+411 | enum AiChatFooterAction {
+    |      ^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_CHAT_FOOTER_ACTIONS` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:417:7
+    |
+417 | const AI_CHAT_FOOTER_ACTIONS: [AiChatFooterAction; 1] = [AiChatFooterAction::Submit];
+    |       ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiMarkdownDocumentCache` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:423:8
+    |
+423 | struct AiMarkdownDocumentCache {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiCachedMarkdownDocument` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:429:8
+    |
+429 | struct AiCachedMarkdownDocument {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MARKDOWN_DOCUMENT_CACHE_MAX_ENTRIES` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:434:7
+    |
+434 | const AI_MARKDOWN_DOCUMENT_CACHE_MAX_ENTRIES: usize = 128;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_CHAT_LIST_ROW_HEIGHT_ESTIMATE` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:435:7
+    |
+435 | const AI_CHAT_LIST_ROW_HEIGHT_ESTIMATE: f32 = 80.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_CHAT_LIST_VIRTUAL_OVERSCAN` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:436:7
+    |
+436 | const AI_CHAT_LIST_VIRTUAL_OVERSCAN: usize = 8;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `ai_chat_virtual_list_spec` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:438:4
+    |
+438 | fn ai_chat_virtual_list_spec() -> TauriVirtualListSpec {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MARKDOWN_WINDOW_OVERDRAW_PX` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:454:7
+    |
+454 | const AI_MARKDOWN_WINDOW_OVERDRAW_PX: f32 = 720.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_MARKDOWN_CONTENT_OFFSET_PX` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:455:7
+    |
+455 | const AI_MARKDOWN_CONTENT_OFFSET_PX: f32 = 56.0;
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `AiChatListItem` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:458:6
+    |
+458 | enum AiChatListItem {
+    |      ^^^^^^^^^^^^^^
+
+warning: struct `AiChatMessageSignatureCache` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:465:8
+    |
+465 | struct AiChatMessageSignatureCache {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `select_conversation`, `signature_for`, `invalidate_message`, `invalidate_all`, `needs_prune`, and `prune` are never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:471:8
+    |
+470 | impl AiChatMessageSignatureCache {
+    | -------------------------------- methods in this implementation
+471 |     fn select_conversation(&mut self, conversation_id: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^
+...
+479 |     fn signature_for(&mut self, message_id: &str, compute: impl FnOnce() -> u64) -> u64 {
+    |        ^^^^^^^^^^^^^
+...
+488 |     fn invalidate_message(&mut self, message_id: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+492 |     fn invalidate_all(&mut self) {
+    |        ^^^^^^^^^^^^^^
+...
+496 |     fn needs_prune(&self, retained_count: usize) -> bool {
+    |        ^^^^^^^^^^^
+...
+500 |     fn prune(&mut self, retained_message_ids: &HashSet<&str>) {
+    |        ^^^^^
+
+warning: struct `AiMessageViewport` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:507:8
+    |
+507 | struct AiMessageViewport {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: struct `AiChatListViewportSnapshot` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:513:8
+    |
+513 | struct AiChatListViewportSnapshot {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiContextTokenBreakdown` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:520:8
+    |
+520 | struct AiContextTokenBreakdown {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiContextTokenBreakdownKey` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:531:8
+    |
+531 | struct AiContextTokenBreakdownKey {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiContextTokenBreakdownCache` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:541:8
+    |
+541 | struct AiContextTokenBreakdownCache {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiPreparedPromptUsage` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:547:8
+    |
+547 | struct AiPreparedPromptUsage {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `AiModelSelectorScope` is never used
+   --> crates\oxideterm-gpui-app\src\workspace.rs:570:6
+    |
+570 | enum AiModelSelectorScope {
+    |      ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `skill_registry`, `skill_workspace_root`, and `loaded_conversation_skills` are never read
+   --> crates\oxideterm-gpui-app\src\workspace.rs:745:5
+    |
+705 | pub(crate) struct WorkspaceApp {
+    |                   ------------ fields in this struct
+...
+745 |     skill_registry: std::sync::Arc<parking_lot::RwLock<oxideterm_skills::SkillRegistry>>,
+    |     ^^^^^^^^^^^^^^
+746 |     skill_workspace_root: Option<std::path::PathBuf>,
+    |     ^^^^^^^^^^^^^^^^^^^^
+747 |     loaded_conversation_skills: HashMap<String, HashMap<String, String>>,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiRuntimeCommandRecord` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:963:19
+    |
+963 | pub(crate) struct AiRuntimeCommandRecord {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiToolExecutionRecord` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace.rs:996:19
+    |
+996 | pub(crate) struct AiToolExecutionRecord {
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `AiToolResultFact` is never constructed
+    --> crates\oxideterm-gpui-app\src\workspace.rs:1018:19
+     |
+1018 | pub(crate) struct AiToolResultFact {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: struct `AiCliAgentSession` is never constructed
+    --> crates\oxideterm-gpui-app\src\workspace.rs:1030:19
+     |
+1030 | pub(crate) struct AiCliAgentSession {
+     |                   ^^^^^^^^^^^^^^^^^
+
+warning: methods `standard_confirm_focus_owner` and `set_standard_confirm_focus` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\actions.rs:763:19
+    |
+ 65 | impl WorkspaceApp {
+    | ----------------- methods in this implementation
+...
+763 |     pub(super) fn standard_confirm_focus_owner(&self) -> Option<ConfirmDialogAction> {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+775 |     pub(super) fn set_standard_confirm_focus(&mut self, action: ConfirmDialogAction) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `InlineFooterInputKeyAction` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\browser_behavior.rs:187:17
+    |
+187 | pub(crate) enum InlineFooterInputKeyAction<T> {
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `inline_footer_input_key_action` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\browser_behavior.rs:299:15
+    |
+299 | pub(crate) fn inline_footer_input_key_action<T>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `operation_in_flight` and `ai_snapshot` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\cloud_sync.rs:358:33
+    |
+357 | impl CloudSyncWorkspaceEntity {
+    | ----------------------------- methods in this implementation
+358 |     pub(in crate::workspace) fn operation_in_flight(&self) -> bool {
+    |                                 ^^^^^^^^^^^^^^^^^^^
+...
+362 |     pub(in crate::workspace) fn ai_snapshot(&self) -> serde_json::Value {
+    |                                 ^^^^^^^^^^^
+
+warning: constant `COMMAND_PALETTE_TOP_RATIO` is never used
+  --> crates\oxideterm-gpui-app\src\workspace\command_palette.rs:27:7
+   |
+27 | const COMMAND_PALETTE_TOP_RATIO: f32 = 0.15; // Tauri DialogContent top-[15%] translate-y-0.
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `execute_ai_action`, `ai_snapshot`, and `request_ai_snapshot_refresh` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\connection_monitor\entity.rs:84:33
+    |
+ 83 | impl HostToolsEntity {
+    | -------------------- methods in this implementation
+ 84 |     pub(in crate::workspace) fn execute_ai_action(
+    |                                 ^^^^^^^^^^^^^^^^^
+...
+265 |     pub(in crate::workspace) fn ai_snapshot(
+    |                                 ^^^^^^^^^^^
+...
+364 |     pub(in crate::workspace) fn request_ai_snapshot_refresh(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `open_connection_pool_tab` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\connection_monitor\lifecycle.rs:248:33
+    |
+180 | impl WorkspaceApp {
+    | ----------------- method in this implementation
+...
+248 |     pub(in crate::workspace) fn open_connection_pool_tab(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `ai_snapshot_for_node` is never used
+ --> crates\oxideterm-gpui-app\src\workspace\forwards\ai.rs:7:33
+  |
+6 | impl ForwardingWorkspaceEntity {
+  | ------------------------------ method in this implementation
+7 |     pub(in crate::workspace) fn ai_snapshot_for_node(&self, node_id: &NodeId) -> serde_json::Value {
+  |                                 ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `tab_id` and `node_id` are never read
+  --> crates\oxideterm-gpui-app\src\workspace\ide.rs:24:9
+   |
+23 |     SurfaceOpened {
+   |     ------------- fields in this variant
+24 |         tab_id: TabId,
+   |         ^^^^^^
+25 |         node_id: NodeId,
+   |         ^^^^^^^
+
+warning: field `tab_id` is never read
+  --> crates\oxideterm-gpui-app\src\workspace\ide.rs:28:9
+   |
+27 |     SurfaceClosed {
+   |     ------------- field in this variant
+28 |         tab_id: TabId,
+   |         ^^^^^^
+
+warning: struct `IdeWorkspaceTargetSnapshot` is never constructed
+  --> crates\oxideterm-gpui-app\src\workspace\ide.rs:54:19
+   |
+54 | pub(super) struct IdeWorkspaceTargetSnapshot {
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `ai_owner_file_system`, `ai_context_snapshot`, and `target_snapshots` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\ide.rs:281:19
+    |
+ 85 | impl IdeWorkspaceEntity {
+    | ----------------------- methods in this implementation
+...
+281 |     pub(super) fn ai_owner_file_system(
+    |                   ^^^^^^^^^^^^^^^^^^^^
+...
+411 |     pub(super) fn ai_context_snapshot(
+    |                   ^^^^^^^^^^^^^^^^^^^
+...
+469 |     pub(super) fn target_snapshots(&self, cx: &App) -> Vec<IdeWorkspaceTargetSnapshot> {
+    |                   ^^^^^^^^^^^^^^^^
+
+warning: variants `AiModelSelectorSearch`, `AiInlinePrompt`, `AiChatInput`, `AiConversationRename`, and `AiMessageEdit` are never constructed
+   --> crates\oxideterm-gpui-app\src\workspace\ime.rs:135:5
+    |
+108 | pub(super) enum WorkspaceImeTarget {
+    |                 ------------------ variants in this enum
+...
+135 |     AiModelSelectorSearch,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+136 |     AiInlinePrompt,
+    |     ^^^^^^^^^^^^^^
+137 |     AiChatInput,
+    |     ^^^^^^^^^^^
+138 |     AiConversationRename,
+    |     ^^^^^^^^^^^^^^^^^^^^
+139 |     AiMessageEdit,
+    |     ^^^^^^^^^^^^^
+    |
+    = note: `WorkspaceImeTarget` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `ime_marked_virtual_range_for_target` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\ime.rs:1529:19
+     |
+ 795 | impl WorkspaceApp {
+     | ----------------- method in this implementation
+...
+1529 |     pub(super) fn ime_marked_virtual_range_for_target(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `set_plugin_setting_value` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\plugin_entity.rs:350:33
+    |
+177 | impl PluginWorkspaceEntity {
+    | -------------------------- method in this implementation
+...
+350 |     pub(in crate::workspace) fn set_plugin_setting_value(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `ai_can_disconnect` and `ai_can_reconnect` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\remote_desktop.rs:371:33
+    |
+370 | impl RemoteDesktopSessionEntity {
+    | ------------------------------- methods in this implementation
+371 |     pub(in crate::workspace) fn ai_can_disconnect(&self) -> bool {
+    |                                 ^^^^^^^^^^^^^^^^^
+...
+380 |     pub(in crate::workspace) fn ai_can_reconnect(&self) -> bool {
+    |                                 ^^^^^^^^^^^^^^^^
+
+warning: method `ai_snapshot` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\remote_desktop.rs:530:33
+    |
+497 | impl RemoteDesktopWorkspaceEntity {
+    | --------------------------------- method in this implementation
+...
+530 |     pub(in crate::workspace) fn ai_snapshot(&self, cx: &App) -> serde_json::Value {
+    |                                 ^^^^^^^^^^^
+
+warning: function `default_ai_conversations_path` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\root\background.rs:245:29
+    |
+245 | pub(in crate::workspace) fn default_ai_conversations_path() -> PathBuf {
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `ai_chat_initialization_error` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\root\init.rs:1209:29
+     |
+1209 | pub(in crate::workspace) fn ai_chat_initialization_error(
+     |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `render_selectable_text_in_group` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\selectable_text.rs:443:19
+    |
+122 | impl WorkspaceApp {
+    | ----------------- method in this implementation
+...
+443 |     pub(super) fn render_selectable_text_in_group(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `AI_SETTINGS_SWITCHER_ID` is never used
+ --> crates\oxideterm-gpui-app\src\workspace\selection_motion.rs:5:32
+  |
+5 | pub(in crate::workspace) const AI_SETTINGS_SWITCHER_ID: &str = "ai-settings-page-switcher";
+  |                                ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `split_confirm_footer_button`, `split_confirm_footer_action_button`, `deferred_ai_select_anchor_update`, and `deferred_ai_text_input_anchor_update` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\settings\cards.rs:408:33
+    |
+  6 | impl WorkspaceApp {
+    | ----------------- associated items in this implementation
+...
+408 |     pub(in crate::workspace) fn split_confirm_footer_button(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+459 |     pub(in crate::workspace) fn split_confirm_footer_action_button(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+600 |     pub(in crate::workspace) fn deferred_ai_select_anchor_update(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+615 |     pub(in crate::workspace) fn deferred_ai_text_input_anchor_update(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `set_ai_page` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\settings\entity.rs:661:33
+    |
+522 | impl SettingsWorkspaceEntity {
+    | ---------------------------- method in this implementation
+...
+661 |     pub(in crate::workspace) fn set_ai_page(
+    |                                 ^^^^^^^^^^^
+
+warning: methods `current_remote_path` and `selected_remote_files` are never used
+    --> crates\oxideterm-gpui-app\src\workspace\sftp.rs:1281:19
+     |
+1009 | impl SftpWorkspaceEntity {
+     | ------------------------ methods in this implementation
+...
+1281 |     pub(super) fn current_remote_path(&self) -> &str {
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+1285 |     pub(super) fn selected_remote_files(&self) -> Vec<String> {
+     |                   ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `context_sidebar_panel_visible` is never used
+  --> crates\oxideterm-gpui-app\src\workspace\sidebar\state.rs:55:29
+   |
+55 | pub(in crate::workspace) fn context_sidebar_panel_visible(
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `clamp_sidebar_widths_to_viewport` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\sidebar\state.rs:451:33
+    |
+ 73 | impl WorkspaceApp {
+    | ----------------- method in this implementation
+...
+451 |     pub(in crate::workspace) fn clamp_sidebar_widths_to_viewport(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `terminal_git_ai_commit_error_message` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_command_bar\git.rs:1447:8
+     |
+   6 | impl WorkspaceApp {
+     | ----------------- method in this implementation
+...
+1447 |     fn terminal_git_ai_commit_error_message(&self, error: &TerminalGitAiCommitError) -> String {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `TERMINAL_GIT_AI_DIFF_TIMEOUT` is never used
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:35:7
+   |
+35 | const TERMINAL_GIT_AI_DIFF_TIMEOUT: Duration = Duration::from_secs(6);
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `TERMINAL_GIT_AI_DIFF_REMOTE_MAX_OUTPUT` is never used
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:37:7
+   |
+37 | const TERMINAL_GIT_AI_DIFF_REMOTE_MAX_OUTPUT: usize = 128 * 1024;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `TERMINAL_GIT_AI_DIFF_MAX_CHARS` is never used
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:38:7
+   |
+38 | const TERMINAL_GIT_AI_DIFF_MAX_CHARS: usize = 24_000;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `AiCommitMessage` is never constructed
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:48:5
+   |
+42 | pub(in crate::workspace) enum TerminalGitDelivery {
+   |                               ------------------- variant in this enum
+...
+48 |     AiCommitMessage {
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `TerminalGitDelivery` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: variants `Ready`, `EmptyStagedDiff`, `NotRepository`, `GitUnavailable`, `CwdUnavailable`, and `Error` are never constructed
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:56:5
+   |
+55 | pub(in crate::workspace) enum TerminalGitAiCommitMessageOutcome {
+   |                               --------------------------------- variants in this enum
+56 |     Ready(String),
+   |     ^^^^^
+57 |     EmptyStagedDiff,
+   |     ^^^^^^^^^^^^^^^
+58 |     NotRepository,
+   |     ^^^^^^^^^^^^^
+59 |     GitUnavailable,
+   |     ^^^^^^^^^^^^^^
+60 |     CwdUnavailable,
+   |     ^^^^^^^^^^^^^^
+61 |     Error(String),
+   |     ^^^^^
+   |
+   = note: `TerminalGitAiCommitMessageOutcome` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: variant `NodeUnavailable` is never constructed
+  --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:96:5
+   |
+91 | pub(in crate::workspace) enum TerminalGitAiCommitError {
+   |                               ------------------------ variant in this enum
+...
+96 |     NodeUnavailable,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `TerminalGitAiCommitError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: struct `TerminalGitAiCommitRequest` is never constructed
+   --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:101:33
+    |
+101 | pub(in crate::workspace) struct TerminalGitAiCommitRequest {
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `next_ai_commit_generation` is never used
+   --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:144:8
+    |
+127 | impl TerminalGitBranchPickerState {
+    | --------------------------------- method in this implementation
+...
+144 |     fn next_ai_commit_generation(&mut self) -> u64 {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `git_ai_commit_loading`, `git_ai_commit_error`, `set_git_ai_commit_error`, and `start_git_ai_commit_message` are never used
+   --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:274:33
+    |
+246 | impl WorkspaceTerminalEntity {
+    | ---------------------------- methods in this implementation
+...
+274 |     pub(in crate::workspace) fn git_ai_commit_loading(&self) -> bool {
+    |                                 ^^^^^^^^^^^^^^^^^^^^^
+...
+278 |     pub(in crate::workspace) fn git_ai_commit_error(&self) -> Option<&TerminalGitAiCommitError> {
+    |                                 ^^^^^^^^^^^^^^^^^^^
+...
+289 |     pub(in crate::workspace) fn set_git_ai_commit_error(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^
+...
+472 |     pub(in crate::workspace) fn start_git_ai_commit_message(
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `run_local_git_staged_diff` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1233:10
+     |
+1233 | async fn run_local_git_staged_diff(cwd: &str) -> GitStagedDiffOutcome {
+     |          ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `local_git_staged_diff_error` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1282:4
+     |
+1282 | fn local_git_staged_diff_error(error: LocalGitProbeError) -> GitStagedDiffOutcome {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `terminal_git_generate_ai_commit_message` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1294:10
+     |
+1294 | async fn terminal_git_generate_ai_commit_message(
+     |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `terminal_git_ai_diff_context` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1463:4
+     |
+1463 | fn terminal_git_ai_diff_context(context: &GitStagedDiffContext, max_chars: usize) -> String {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `terminal_git_ai_commit_messages` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1475:4
+     |
+1475 | fn terminal_git_ai_commit_messages(diff_context: String) -> Vec<AiChatMessage> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `terminal_git_ai_chat_message` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1493:4
+     |
+1493 | fn terminal_git_ai_chat_message(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `terminal_git_truncate_ai_context` is never used
+    --> crates\oxideterm-gpui-app\src\workspace\terminal_git.rs:1518:4
+     |
+1518 | fn terminal_git_truncate_ai_context(mut context: String, max_chars: usize) -> String {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: linker stdout: 正在创建库 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\oxideterm_native.lib 和对象 C:\Users\t\Documents\GitHub\oxideterm\target\debug\deps\oxideterm_native.exp
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `oxideterm-gpui-app` (bin "oxideterm-native") generated 110 warnings (run `cargo fix --bin "oxideterm-native" -p oxideterm-gpui-app` to apply 24 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 39.53s

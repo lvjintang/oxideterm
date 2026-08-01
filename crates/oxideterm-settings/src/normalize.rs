@@ -95,6 +95,37 @@ fn remove_legacy_mcp_auth_tokens(settings: &mut Value, warnings: &mut Vec<String
     }
 }
 
+fn zeroize_json_strings(value: &mut Value) {
+    match value {
+        Value::String(value) => value.zeroize(),
+        Value::Array(values) => values.iter_mut().for_each(zeroize_json_strings),
+        Value::Object(values) => values.values_mut().for_each(zeroize_json_strings),
+        Value::Null | Value::Bool(_) | Value::Number(_) => {}
+    }
+}
+
+fn remove_retired_ai_settings(settings: &mut Value, raw: &Value, warnings: &mut Vec<String>) {
+    if raw.get("ai").is_none() {
+        return;
+    }
+
+    let Some(settings) = settings.as_object_mut() else {
+        return;
+    };
+    if let Some(mut retired) = settings.remove("ai") {
+        // AI settings can contain provider metadata, MCP headers, agent
+        // environments, prompts, and legacy plaintext credentials. They are
+        // retired rather than preserved so no secret-bearing value survives a
+        // load/save cycle after AI support has been removed.
+        zeroize_json_strings(&mut retired);
+    }
+    settings.insert(
+        "ai".to_string(),
+        serde_json::to_value(AiSettings::default()).expect("AI defaults must serialize"),
+    );
+    warnings.push("Removed retired AI, MCP, and ACP settings.".to_string());
+}
+
 fn now_ms() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -603,6 +634,7 @@ pub fn sanitize_settings_value(raw: Value) -> Result<SanitizedSettings> {
     remove_ai_provider_default_models(&mut settings);
     migrate_ai_tool_use_settings(&mut settings, &raw);
     normalize_ai_tool_auto_approve_keys(&mut settings, &raw);
+    remove_retired_ai_settings(&mut settings, &raw, &mut migration_warnings);
     migrate_ai_memory_entries(&mut settings);
     remove_legacy_mcp_auth_tokens(&mut settings, &mut migration_warnings);
     migrate_acp_agent_presets(&mut settings, &mut migration_warnings);
@@ -888,7 +920,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn legacy_mcp_auth_token_is_removed_from_settings() {
+    fn retired_ai_settings_are_removed_without_retaining_secret_material() {
         let sanitized = sanitize_settings_value(json!({
             "ai": {
                 "mcpServers": [{
@@ -902,18 +934,23 @@ mod tests {
         }))
         .expect("sanitize settings");
 
-        let server = &sanitized.settings.ai.mcp_servers[0];
-        assert!(server.get("authToken").is_none());
+        assert!(!sanitized.settings.ai.enabled);
+        assert!(sanitized.settings.ai.mcp_servers.is_empty());
         assert!(
-            !serde_json::to_string(server)
-                .expect("serialize server")
+            !serde_json::to_string(&sanitized.settings)
+                .expect("serialize settings")
                 .contains("legacy-secret")
         );
-        assert_eq!(sanitized.migration_warnings.len(), 1);
+        assert!(
+            sanitized
+                .migration_warnings
+                .iter()
+                .any(|warning| warning == "Removed retired AI, MCP, and ACP settings.")
+        );
     }
 
     #[test]
-    fn legacy_ai_memory_migrates_once_to_an_itemized_entry() {
+    fn retired_ai_memory_is_not_migrated_or_preserved() {
         let sanitized = sanitize_settings_value(json!({
             "ai": {
                 "memory": {
@@ -924,13 +961,8 @@ mod tests {
         }))
         .expect("sanitize settings");
 
-        assert_eq!(sanitized.settings.ai.memory.entries.len(), 1);
-        let entry = &sanitized.settings.ai.memory.entries[0];
-        assert_eq!(entry.id, "legacy-user-memory");
-        assert_eq!(entry.scope_kind, AiMemoryScopeKind::User);
-        assert_eq!(entry.memory_kind, AiMemoryKind::LongTerm);
-        assert_eq!(entry.source, AiMemorySource::Migrated);
-        assert_eq!(entry.revision, 1);
+        assert!(sanitized.settings.ai.memory.entries.is_empty());
+        assert!(sanitized.settings.ai.memory.content.is_empty());
     }
 
     #[test]

@@ -31,8 +31,9 @@ pub fn settings_tab_from_ai_section(section: &str) -> Option<SettingsTab> {
         "reconnect" => Some(SettingsTab::Connections),
         "sftp" => Some(SettingsTab::Sftp),
         "ide" => Some(SettingsTab::Ide),
-        "ai" | "assistant" => Some(SettingsTab::Ai),
-        "knowledge" | "rag" => Some(SettingsTab::Knowledge),
+        // AI, MCP, ACP, and RAG settings were retired. Do not route legacy
+        // deep links to hidden configuration surfaces.
+        "ai" | "assistant" | "knowledge" | "rag" => None,
         "keybindings" | "keyboard" => Some(SettingsTab::Keybindings),
         "help" => Some(SettingsTab::Help),
         _ => None,
@@ -119,10 +120,7 @@ mod tests {
             terminal_settings_page_from_ai_section("local_terminal"),
             Some(TerminalSettingsPage::Local)
         );
-        assert_eq!(
-            settings_tab_from_ai_section("assistant"),
-            Some(SettingsTab::Ai)
-        );
+        assert_eq!(settings_tab_from_ai_section("assistant"), None);
         assert_eq!(
             settings_tab_from_ai_section("keyboard"),
             Some(SettingsTab::Keybindings)

@@ -79,12 +79,10 @@ actions!(
         ClosePane,
         SplitNavLeft,
         SplitNavRight,
-        TerminalAiPanel,
         TerminalClearScreen,
         TerminalRecording,
         TerminalFreeTypeMode,
         PaletteEventLog,
-        PaletteAiSidebar,
         PaletteBroadcast,
         PaletteDisconnectAll,
         PaletteReconnectAll,
@@ -97,7 +95,6 @@ actions!(
 );
 
 fn main() {
-    oxideterm_acp_adapter::run_from_env_if_requested();
     let ssh_launch_path = ssh_launch_path_arg().unwrap_or_else(|error| {
         eprintln!("failed to read SSH launch argument: {error}");
         std::process::exit(2);

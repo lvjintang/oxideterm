@@ -962,6 +962,7 @@ impl WorkspaceApp {
         self.send_terminal_git_command(plan, failure_message, cx);
     }
 
+    #[cfg(any())]
     pub(in crate::workspace) fn generate_terminal_git_ai_commit_message(
         &mut self,
         cx: &mut Context<Self>,

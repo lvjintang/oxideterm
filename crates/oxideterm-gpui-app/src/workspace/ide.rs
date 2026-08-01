@@ -739,9 +739,6 @@ impl WorkspaceApp {
         }
         self.active_ssh_node_id = Some(target_node_id.clone());
         self.expanded_ssh_nodes.insert(target_node_id.clone());
-        // Existing IDE surfaces do not emit SurfaceOpened during reconnect.
-        // Re-register only after the real surface has restored its new node owner.
-        self.register_ai_runtime_ide_surface_owner(tab_id, &target_node_id, cx);
         cx.notify();
         if same_project_open {
             IdeReconnectRestoreStatus::Restored
@@ -1015,13 +1012,7 @@ impl WorkspaceApp {
             IdeWorkspaceEvent::RememberAgentMode(mode) => {
                 self.remember_ide_agent_mode(*mode, cx);
             }
-            IdeWorkspaceEvent::SurfaceOpened { tab_id, node_id } => {
-                self.register_ai_runtime_ide_surface_owner(*tab_id, node_id, cx);
-            }
-            IdeWorkspaceEvent::SurfaceClosed { tab_id } => {
-                self.ai_runtime_context
-                    .update(cx, |runtime, _cx| runtime.revoke_ide_surface(*tab_id));
-            }
+            IdeWorkspaceEvent::SurfaceOpened { .. } | IdeWorkspaceEvent::SurfaceClosed { .. } => {}
             IdeWorkspaceEvent::TransientSurfaceClosed { tab_id } => {
                 self.close_transient_ide_tab_after_folder_cancel(*tab_id, cx);
             }
@@ -1038,33 +1029,6 @@ impl WorkspaceApp {
                 );
             }
         }
-    }
-
-    fn register_ai_runtime_ide_surface_owner(
-        &mut self,
-        tab_id: TabId,
-        node_id: &NodeId,
-        cx: &mut Context<Self>,
-    ) {
-        let label = self
-            .tabs(cx)
-            .iter()
-            .find(|tab| tab.id == tab_id)
-            .map(|tab| tab.title.clone())
-            .unwrap_or_else(|| "IDE workspace".to_string());
-        let resource_ref = self.ssh_nodes.get(node_id).and_then(|node| {
-            node.saved_connection_id.as_ref().and_then(|connection_id| {
-                oxideterm_ai::StableResourceRef::new(
-                    oxideterm_ai::StableResourceKind::SavedConnection,
-                    connection_id.clone(),
-                    Some(label.clone()),
-                )
-                .ok()
-            })
-        });
-        self.ai_runtime_context.update(cx, |runtime, _cx| {
-            runtime.register_ide_surface(tab_id, node_id.clone(), label, resource_ref);
-        });
     }
 
     fn close_transient_ide_tab_after_folder_cancel(
@@ -1113,8 +1077,6 @@ impl WorkspaceApp {
         self.settings_workspace.update(cx, |settings, _cx| {
             settings.acknowledge_external_store_state()
         });
-        self.ai_entity
-            .update(cx, |ai, _cx| ai.set_agent_fs_mode(mode));
         cx.notify();
     }
 }

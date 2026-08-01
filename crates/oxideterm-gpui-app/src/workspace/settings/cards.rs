@@ -539,62 +539,6 @@ impl WorkspaceApp {
         .into_any_element()
     }
 
-    pub(in crate::workspace) fn ai_page_switcher(&self, cx: &mut Context<Self>) -> AnyElement {
-        let pages = AiSettingsPage::all();
-        let route = self.settings_workspace.read(cx).route_snapshot();
-        let active_index = pages
-            .iter()
-            .position(|page| *page == route.ai_page)
-            .unwrap_or(0);
-        let previous_index = pages
-            .iter()
-            .position(|page| *page == route.previous_ai_page)
-            .unwrap_or(active_index);
-        let mut items = Vec::with_capacity(pages.len());
-        for (page_index, page) in pages.iter().enumerate() {
-            let page_id = *page;
-            let active = route.ai_page == page_id;
-            let item = oxideterm_gpui_ui::segmented_control_item(
-                &self.tokens,
-                self.i18n.t(page_id.label_key()),
-                active,
-            )
-            .on_mouse_down(
-                MouseButton::Left,
-                cx.listener(move |this, _event, _window, cx| {
-                    let changed = this
-                        .settings_workspace
-                        .update(cx, |settings, cx| settings.set_ai_page(page_id, cx));
-                    if changed {
-                        this.begin_user_segmented_control_transition(
-                            selection_motion::AI_SETTINGS_SWITCHER_ID,
-                            page_index,
-                            cx,
-                        );
-                    }
-                    cx.notify();
-                }),
-            );
-            items.push(item.into_any_element());
-        }
-        oxideterm_gpui_ui::segmented_control(
-            &self.tokens,
-            selection_motion::AI_SETTINGS_SWITCHER_ID,
-            oxideterm_gpui_ui::SegmentedControlOptions::new(
-                active_index,
-                previous_index,
-                pages.len(),
-            )
-            .user_transition_active(self.segmented_control_user_transition_active(
-                selection_motion::AI_SETTINGS_SWITCHER_ID,
-                active_index,
-            ))
-            .has_background_image(self.settings_background_active()),
-            items,
-        )
-        .into_any_element()
-    }
-
     pub(in crate::workspace) fn update_select_anchor(
         &mut self,
         anchor: OverlayAnchor,
@@ -622,18 +566,6 @@ impl WorkspaceApp {
                     SelectAnchorId::CloudSyncConflictStrategy
                 )
             )
-            || (matches!(
-                anchor.id,
-                SelectAnchorId::AiPanelRoot
-                    | SelectAnchorId::AiConversationList
-                    | SelectAnchorId::AiChatMenu
-                    | SelectAnchorId::AiModelSelector
-                    | SelectAnchorId::AiInlineModelSelector
-                    | SelectAnchorId::AiReasoningMenu
-                    | SelectAnchorId::AiSafetyMenu
-                    | SelectAnchorId::AiContextPopover
-                    | SelectAnchorId::AiAutocomplete
-            ) && self.has_ai_sidebar_floating_overlay(cx))
             || (anchor.id == SelectAnchorId::TerminalBroadcastMenu
                 && self.terminal.read(cx).broadcast_menu_open())
             || (anchor.id == SelectAnchorId::TerminalCommandBar
@@ -725,49 +657,6 @@ impl WorkspaceApp {
                 _ => return true,
             }
         }
-        if let Some(input) = self.ai_entity.read(cx).focused_settings_input() {
-            let key = event.keystroke.key.as_str();
-            let modifiers = event.keystroke.modifiers;
-            match key {
-                "tab" if input.is_ai_mcp() && self.ai_entity.read(cx).mcp_dialog_is_open() => {
-                    if let Some(browser_behavior::ModalFooterInputKeyAction::FocusFooter(action)) =
-                        browser_behavior::modal_footer_input_key_action(
-                            key,
-                            event.keystroke.modifiers.shift,
-                            &CONFIRM_DIALOG_FOOTER_ACTIONS,
-                            true,
-                            true,
-                            self.standard_confirm_focus_owner(),
-                            ConfirmDialogAction::Cancel,
-                            None,
-                        )
-                    {
-                        self.ai_entity.update(cx, |ai, cx| {
-                            ai.blur_settings_input(cx);
-                        });
-                        self.set_standard_confirm_focus(action);
-                        self.show_active_input_caret(cx);
-                        cx.notify();
-                    }
-                    return true;
-                }
-                "escape" | "enter" => {
-                    self.ai_entity.update(cx, |ai, cx| {
-                        ai.blur_settings_input(cx);
-                    });
-                    self.clear_ime_selection();
-                    self.show_active_input_caret(cx);
-                    return true;
-                }
-                "backspace" | "delete" if !modifiers.platform && !modifiers.control => {
-                    self.ai_entity.update(cx, |ai, cx| {
-                        ai.pop_settings_input(input, cx);
-                    });
-                    return true;
-                }
-                _ => return true,
-            }
-        }
         let Some(input) = self.focused_settings_input else {
             return false;
         };
@@ -838,14 +727,6 @@ impl WorkspaceApp {
         if self
             .settings_workspace
             .update(cx, |settings, cx| settings.blur_settings_entity_input(cx))
-        {
-            self.ime_marked_text = None;
-            self.clear_ime_selection();
-            changed = true;
-        }
-        if self
-            .ai_entity
-            .update(cx, |ai, cx| ai.blur_settings_input(cx))
         {
             self.ime_marked_text = None;
             self.clear_ime_selection();
@@ -929,48 +810,6 @@ impl WorkspaceApp {
             .sftp_view
             .update(cx, |sftp, cx| sftp.clear_input_focus(cx))
         {
-            self.ime_marked_text = None;
-            changed = true;
-        }
-        if self.ai_entity.read(cx).model_selector_search_focused()
-            || self.ai_entity.read(cx).model_selector_open()
-        {
-            // The AI model selector can live either in the sidebar portal or
-            // inside the terminal inline panel. A generic outside blur should
-            // release the searchable select without restoring inline focus.
-            self.ai_entity.update(cx, |ai, _cx| {
-                ai.close_model_selector();
-            });
-            self.ime_marked_text = None;
-            changed = true;
-        }
-        if self
-            .ai_entity
-            .read(cx)
-            .terminal_inline_panel()
-            .prompt_focused
-        {
-            // The inline AI prompt is rendered inside the terminal pane rather
-            // than as a normal form control, so it must explicitly join the
-            // shared blur path or it remains the active IME target after an
-            // outside click.
-            self.ai_entity.update(cx, |ai, _cx| {
-                ai.terminal_inline_panel_mut().prompt_focused = false;
-            });
-            self.ime_marked_text = None;
-            changed = true;
-        }
-        if self.ai_entity.read(cx).chat_ui().input_focused {
-            self.ai_entity.update(cx, |ai, _cx| {
-                ai.blur_chat_input(true);
-            });
-            self.ime_marked_text = None;
-            changed = true;
-        }
-        if self.ai_entity.read(cx).chat_ui().editing_message_focused {
-            self.ai_entity.update(cx, |ai, _cx| {
-                ai.blur_message_edit();
-            });
             self.ime_marked_text = None;
             changed = true;
         }
@@ -1101,9 +940,6 @@ impl WorkspaceApp {
             .settings_entity_input_value(input)
             .is_some();
         if entity_owned_input {
-            self.ai_entity.update(cx, |ai, cx| {
-                ai.blur_settings_input(cx);
-            });
             if let Some(previous_input) = self.focused_settings_input.take() {
                 self.clear_settings_input_draft(previous_input);
             }
@@ -1115,26 +951,8 @@ impl WorkspaceApp {
             cx.notify();
             return;
         }
-        if ai_state::AiWorkspaceEntity::owns_settings_input(input) {
-            if let Some(previous_input) = self.focused_settings_input.take() {
-                self.clear_settings_input_draft(previous_input);
-            }
-            self.settings_workspace.update(cx, |settings, cx| {
-                settings.blur_settings_entity_input(cx);
-            });
-            self.ai_entity.update(cx, |ai, cx| {
-                ai.focus_settings_input(input, cx);
-            });
-            self.clear_ime_selection();
-            self.show_active_input_caret(cx);
-            cx.notify();
-            return;
-        }
         self.settings_workspace.update(cx, |settings, cx| {
             settings.blur_settings_entity_input(cx);
-        });
-        self.ai_entity.update(cx, |ai, cx| {
-            ai.blur_settings_input(cx);
         });
         let app_lock_input = matches!(
             input,
@@ -1258,9 +1076,6 @@ impl WorkspaceApp {
         if let Some(value) = persisted_settings_input_value(settings, input) {
             return value;
         }
-        if let Some(value) = self.ai_entity.read(cx).settings_input_value(input) {
-            return value.to_owned();
-        }
         if let Some(value) = self
             .settings_workspace
             .read(cx)
@@ -1354,12 +1169,6 @@ impl WorkspaceApp {
             SettingsInputDraftApply::Unhandled => {}
         }
 
-        if ai_state::AiWorkspaceEntity::owns_settings_input(input) {
-            // Entity-owned inputs are updated directly by the IME adapter and
-            // must not be copied into the legacy settings page model.
-            cx.notify();
-            return;
-        }
         let cloud_sync_input = {
             let cloud_sync = self.cloud_sync.read(cx);
             cloud_sync_form_input_value_ref(&cloud_sync.view.form, input).is_some()

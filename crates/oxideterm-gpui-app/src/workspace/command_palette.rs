@@ -547,6 +547,15 @@ impl WorkspaceApp {
         );
     }
 
+    pub(super) fn push_ai_settings_toast(
+        &self,
+        title: String,
+        variant: TerminalNoticeVariant,
+        cx: &App,
+    ) {
+        self.push_command_palette_toast(title, None, variant, cx);
+    }
+
     pub(super) fn i18n_replace(&self, key: &str, replacements: &[(&str, String)]) -> String {
         let mut text = self.i18n.t(key);
         for (name, value) in replacements {
@@ -1323,13 +1332,7 @@ impl WorkspaceApp {
                             )),
                     ),
             );
-        let palette_top = self
-            .ai_entity
-            .read(cx)
-            .chat_ui()
-            .overlay_window_size
-            .map(|(_, height)| height * COMMAND_PALETTE_TOP_RATIO)
-            .unwrap_or(COMMAND_PALETTE_FALLBACK_TOP);
+        let palette_top = COMMAND_PALETTE_FALLBACK_TOP;
 
         dismissible_command_palette_backdrop()
             .items_start()

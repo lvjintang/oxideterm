@@ -22,7 +22,7 @@ impl WorkspaceApp {
                 width -= self.sidebar_panel_width();
             }
             if self.context_sidebar_rendered {
-                width -= self.ai_entity.read(cx).chat_ui().sidebar_width;
+                width -= self.sidebar_panel_width();
             }
         }
         // The split ratio is applied inside the SFTP root padding.

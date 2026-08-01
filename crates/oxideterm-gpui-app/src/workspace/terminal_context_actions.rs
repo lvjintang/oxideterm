@@ -24,14 +24,7 @@ impl WorkspaceApp {
                 self.open_search(window, cx);
                 true
             }
-            TerminalContextAction::SendSelectionToAi => {
-                let Some(_selection) = active_pane.read(cx).selected_text_snapshot() else {
-                    return false;
-                };
-                // The inline panel owns AI context sanitization and truncation.
-                self.open_terminal_ai_inline_panel(window, cx);
-                true
-            }
+            TerminalContextAction::SendSelectionToAi => false,
             TerminalContextAction::FillCommandBarFromSelection => {
                 let Some(selection) = active_pane.read(cx).selected_text_snapshot() else {
                     return false;
@@ -40,9 +33,6 @@ impl WorkspaceApp {
                     return false;
                 };
                 self.search.visible = false;
-                if self.ai_entity.read(cx).terminal_inline_panel().open {
-                    self.close_terminal_ai_inline_panel(window, cx);
-                }
                 self.close_terminal_command_overlays(cx);
                 let sender_id = self.replace_terminal_command_sender_text(command, cx);
                 self.ime_marked_text = None;

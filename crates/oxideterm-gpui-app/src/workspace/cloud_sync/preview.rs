@@ -551,16 +551,7 @@ impl WorkspaceApp {
                     .is_none_or(|ids| ids.contains(connection_id))
             })
             .collect::<Vec<_>>();
-        let portable_secret_count =
-            oxideterm_ai::provider_views(&self.settings_store.settings().ai.providers)
-                .into_iter()
-                .filter(|provider| {
-                    self.ai_entity
-                        .read(cx)
-                        .key_store()
-                        .has_provider_key(&provider.id)
-                })
-                .count();
+        let portable_secret_count = 0;
         let preflight = oxideterm_connections::oxide_file::preflight_export(
             &self.connection_store,
             &connection_ids,

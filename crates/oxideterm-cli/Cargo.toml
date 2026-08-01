@@ -12,12 +12,12 @@ path = "src/main.rs"
 chrono.workspace = true
 clap.workspace = true
 clap_complete.workspace = true
-oxideterm-ai = { path = "../oxideterm-ai" }
 oxideterm-cloud-sync = { path = "../oxideterm-cloud-sync", default-features = false }
 oxideterm-connections = { path = "../oxideterm-connections" }
 oxideterm-forwarding = { path = "../oxideterm-forwarding", default-features = false }
 oxideterm-portable-runtime = { path = "../oxideterm-portable-runtime" }
 oxideterm-quick-commands = { path = "../oxideterm-quick-commands" }
+oxideterm-secret-store = { path = "../oxideterm-secret-store" }
 oxideterm-settings = { path = "../oxideterm-settings" }
 oxideterm-ssh = { path = "../oxideterm-ssh" }
 oxideterm-ssh-launch = { path = "../oxideterm-ssh-launch" }

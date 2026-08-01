@@ -46,7 +46,6 @@ pub(in crate::workspace) enum PluginSubscriptionSample {
     Transfers,
     Profiler,
     Ide,
-    Ai,
     EventLog,
 }
 

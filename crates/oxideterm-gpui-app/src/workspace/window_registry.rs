@@ -211,90 +211,6 @@ where
     }
 }
 
-#[derive(Clone, Copy)]
-pub(in crate::workspace) enum AiWindowEffect {
-    AcpAgentProbeDeliveryReady,
-    AcpModelDiscoveryDeliveryReady,
-    ChatStreamDeliveryReady,
-    CompactionDeliveryReady,
-    CompactionStateChanged,
-    CredentialOperationReady,
-    KnowledgePageChanged,
-    KnowledgeReindexDeliveryReady,
-    McpRuntimeChanged,
-    ModelRefreshDeliveryReady,
-    ProviderKeyStatusChanged,
-    SelectorProviderStatusChanged,
-    SettingsConfirmChanged,
-    TerminalInlineDeliveryReady,
-}
-
-impl From<&ai_state::AiWorkspaceEvent> for AiWindowEffect {
-    fn from(event: &ai_state::AiWorkspaceEvent) -> Self {
-        match event {
-            ai_state::AiWorkspaceEvent::AcpAgentProbeDeliveryReady => {
-                Self::AcpAgentProbeDeliveryReady
-            }
-            ai_state::AiWorkspaceEvent::AcpModelDiscoveryDeliveryReady => {
-                Self::AcpModelDiscoveryDeliveryReady
-            }
-            ai_state::AiWorkspaceEvent::ChatStreamDeliveryReady => Self::ChatStreamDeliveryReady,
-            ai_state::AiWorkspaceEvent::CompactionDeliveryReady => Self::CompactionDeliveryReady,
-            ai_state::AiWorkspaceEvent::CompactionStateChanged => Self::CompactionStateChanged,
-            ai_state::AiWorkspaceEvent::CredentialOperationReady => Self::CredentialOperationReady,
-            ai_state::AiWorkspaceEvent::KnowledgePageChanged => Self::KnowledgePageChanged,
-            ai_state::AiWorkspaceEvent::KnowledgeReindexDeliveryReady => {
-                Self::KnowledgeReindexDeliveryReady
-            }
-            ai_state::AiWorkspaceEvent::McpRuntimeChanged => Self::McpRuntimeChanged,
-            ai_state::AiWorkspaceEvent::ModelRefreshDeliveryReady => {
-                Self::ModelRefreshDeliveryReady
-            }
-            ai_state::AiWorkspaceEvent::ProviderKeyStatusChanged => Self::ProviderKeyStatusChanged,
-            ai_state::AiWorkspaceEvent::SelectorProviderStatusChanged => {
-                Self::SelectorProviderStatusChanged
-            }
-            ai_state::AiWorkspaceEvent::SettingsConfirmChanged => Self::SettingsConfirmChanged,
-            ai_state::AiWorkspaceEvent::TerminalInlineDeliveryReady => {
-                Self::TerminalInlineDeliveryReady
-            }
-        }
-    }
-}
-
-impl AiWindowEffect {
-    fn into_event(self) -> ai_state::AiWorkspaceEvent {
-        match self {
-            Self::AcpAgentProbeDeliveryReady => {
-                ai_state::AiWorkspaceEvent::AcpAgentProbeDeliveryReady
-            }
-            Self::AcpModelDiscoveryDeliveryReady => {
-                ai_state::AiWorkspaceEvent::AcpModelDiscoveryDeliveryReady
-            }
-            Self::ChatStreamDeliveryReady => ai_state::AiWorkspaceEvent::ChatStreamDeliveryReady,
-            Self::CompactionDeliveryReady => ai_state::AiWorkspaceEvent::CompactionDeliveryReady,
-            Self::CompactionStateChanged => ai_state::AiWorkspaceEvent::CompactionStateChanged,
-            Self::CredentialOperationReady => ai_state::AiWorkspaceEvent::CredentialOperationReady,
-            Self::KnowledgePageChanged => ai_state::AiWorkspaceEvent::KnowledgePageChanged,
-            Self::KnowledgeReindexDeliveryReady => {
-                ai_state::AiWorkspaceEvent::KnowledgeReindexDeliveryReady
-            }
-            Self::McpRuntimeChanged => ai_state::AiWorkspaceEvent::McpRuntimeChanged,
-            Self::ModelRefreshDeliveryReady => {
-                ai_state::AiWorkspaceEvent::ModelRefreshDeliveryReady
-            }
-            Self::ProviderKeyStatusChanged => ai_state::AiWorkspaceEvent::ProviderKeyStatusChanged,
-            Self::SelectorProviderStatusChanged => {
-                ai_state::AiWorkspaceEvent::SelectorProviderStatusChanged
-            }
-            Self::SettingsConfirmChanged => ai_state::AiWorkspaceEvent::SettingsConfirmChanged,
-            Self::TerminalInlineDeliveryReady => {
-                ai_state::AiWorkspaceEvent::TerminalInlineDeliveryReady
-            }
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(in crate::workspace) enum PluginWindowEffect {
     ManagerDeliveryReady,
@@ -342,7 +258,6 @@ pub(in crate::workspace) enum WorkspaceWindowEffect {
     Runtime(runtime_entity::WorkspaceRuntimeEvent),
     ConnectionFlow,
     CloudSync(cloud_sync::CloudSyncWorkspaceEvent),
-    Ai(AiWindowEffect),
     Plugin(PluginWindowEffect),
     TabHost(tabs::WorkspaceTabHostEvent),
     Graphics,
@@ -353,28 +268,9 @@ pub(in crate::workspace) enum WorkspaceWindowEffectKey {
     Runtime,
     ConnectionFlow,
     CloudSyncDeliveries,
-    Ai(AiWindowEffectKey),
     Plugin(PluginWindowEffect),
     TabCloseProcessCheck,
     Graphics,
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub(in crate::workspace) enum AiWindowEffectKey {
-    AcpAgentProbe,
-    AcpModelDiscovery,
-    ChatStream,
-    CompactionDelivery,
-    CompactionState,
-    CredentialOperation,
-    KnowledgePage,
-    KnowledgeReindex,
-    McpRuntime,
-    ModelRefresh,
-    ProviderKeyStatus,
-    SelectorProviderStatus,
-    SettingsConfirm,
-    TerminalInline,
 }
 
 impl WorkspaceWindowEffect {
@@ -387,28 +283,6 @@ impl WorkspaceWindowEffect {
                 Some(WorkspaceWindowEffectKey::CloudSyncDeliveries)
             }
             Self::CloudSync(_) => None,
-            Self::Ai(effect) => Some(WorkspaceWindowEffectKey::Ai(match effect {
-                AiWindowEffect::AcpAgentProbeDeliveryReady => AiWindowEffectKey::AcpAgentProbe,
-                AiWindowEffect::AcpModelDiscoveryDeliveryReady => {
-                    AiWindowEffectKey::AcpModelDiscovery
-                }
-                AiWindowEffect::ChatStreamDeliveryReady => AiWindowEffectKey::ChatStream,
-                AiWindowEffect::CompactionDeliveryReady => AiWindowEffectKey::CompactionDelivery,
-                AiWindowEffect::CompactionStateChanged => AiWindowEffectKey::CompactionState,
-                AiWindowEffect::CredentialOperationReady => AiWindowEffectKey::CredentialOperation,
-                AiWindowEffect::KnowledgePageChanged => AiWindowEffectKey::KnowledgePage,
-                AiWindowEffect::KnowledgeReindexDeliveryReady => {
-                    AiWindowEffectKey::KnowledgeReindex
-                }
-                AiWindowEffect::McpRuntimeChanged => AiWindowEffectKey::McpRuntime,
-                AiWindowEffect::ModelRefreshDeliveryReady => AiWindowEffectKey::ModelRefresh,
-                AiWindowEffect::ProviderKeyStatusChanged => AiWindowEffectKey::ProviderKeyStatus,
-                AiWindowEffect::SelectorProviderStatusChanged => {
-                    AiWindowEffectKey::SelectorProviderStatus
-                }
-                AiWindowEffect::SettingsConfirmChanged => AiWindowEffectKey::SettingsConfirm,
-                AiWindowEffect::TerminalInlineDeliveryReady => AiWindowEffectKey::TerminalInline,
-            })),
             Self::Plugin(effect) => Some(WorkspaceWindowEffectKey::Plugin(*effect)),
             Self::TabHost(tabs::WorkspaceTabHostEvent::CloseProcessCheckReady) => {
                 Some(WorkspaceWindowEffectKey::TabCloseProcessCheck)
@@ -528,14 +402,6 @@ impl WorkspaceApp {
         self.enqueue_window_effect(WorkspaceWindowEffect::CloudSync(event), cx);
     }
 
-    pub(in crate::workspace) fn enqueue_ai_window_effect(
-        &mut self,
-        event: &ai_state::AiWorkspaceEvent,
-        cx: &mut Context<Self>,
-    ) {
-        self.enqueue_window_effect(WorkspaceWindowEffect::Ai(event.into()), cx);
-    }
-
     pub(in crate::workspace) fn enqueue_plugin_window_effect(
         &mut self,
         event: &plugin_entity::PluginWorkspaceEvent,
@@ -649,9 +515,6 @@ impl WorkspaceApp {
             WorkspaceWindowEffect::CloudSync(event) => {
                 self.handle_cloud_sync_workspace_event(&event, window, cx);
             }
-            WorkspaceWindowEffect::Ai(event) => {
-                self.handle_ai_workspace_event(&event.into_event(), window_handle, cx);
-            }
             WorkspaceWindowEffect::Plugin(event) => {
                 self.handle_plugin_workspace_event(&event.into_event(), window_handle, cx);
             }
@@ -713,11 +576,6 @@ mod tests {
             WindowTargetHint::MainOrAny,
         );
         registry.enqueue(
-            WorkspaceWindowEffect::Ai(AiWindowEffect::ChatStreamDeliveryReady),
-            Some(WorkspaceWindowEffectKey::Ai(AiWindowEffectKey::ChatStream)),
-            WindowTargetHint::MainOrAny,
-        );
-        registry.enqueue(
             WorkspaceWindowEffect::Plugin(PluginWindowEffect::RuntimeRequestsReady),
             Some(WorkspaceWindowEffectKey::Plugin(
                 PluginWindowEffect::RuntimeRequestsReady,
@@ -738,14 +596,6 @@ mod tests {
         assert!(matches!(
             delivery.effect,
             WorkspaceWindowEffect::Runtime(runtime_entity::WorkspaceRuntimeEvent::EffectsReady)
-        ));
-        let ai_delivery = registry
-            .next_delivery()
-            .expect("the surviving detached window should receive AI delivery");
-        assert_eq!(ai_delivery.registration, second_detached);
-        assert!(matches!(
-            ai_delivery.effect,
-            WorkspaceWindowEffect::Ai(AiWindowEffect::ChatStreamDeliveryReady)
         ));
         let plugin_delivery = registry
             .next_delivery()

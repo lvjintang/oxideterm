@@ -482,28 +482,10 @@ fn owned_forward_import_record(record: &OxideForwardRecord) -> OwnedForwardImpor
 }
 
 pub(crate) fn export_portable_secrets(
-    json: bool,
+    _json: bool,
 ) -> CliResult<Vec<oxideterm_connections::oxide_file::EncryptedPortableSecret>> {
-    let settings = settings::load_settings_read_only(json)?;
-    let key_store = oxideterm_ai::AiProviderKeyStore::new();
-    let provider_ids = oxideterm_ai::provider_views(&settings.settings.ai.providers)
-        .into_iter()
-        .map(|provider| provider.id)
-        .filter(|provider_id| key_store.has_provider_key(provider_id))
-        .collect::<Vec<_>>();
-    let keys = key_store
-        .get_provider_keys(&provider_ids)
-        .map_err(|error| CliError::new("portable_secret_export_failed", error.to_string(), json))?;
-    Ok(keys
-        .into_iter()
-        .map(
-            |(id, secret)| oxideterm_connections::oxide_file::EncryptedPortableSecret {
-                kind: "ai_provider_key".to_string(),
-                id,
-                secret,
-            },
-        )
-        .collect())
+    // Portable AI-provider credentials are intentionally no longer exported.
+    Ok(Vec::new())
 }
 
 pub(crate) fn apply_imported_app_settings(
@@ -566,33 +548,14 @@ pub(crate) fn apply_imported_portable_secrets(
         return Ok(());
     }
 
-    let key_store = oxideterm_ai::AiProviderKeyStore::new();
-    let mut imported = 0usize;
-    for secret in envelope.portable_secrets.drain(..) {
-        if secret.kind != "ai_provider_key" || secret.id.trim().is_empty() {
-            envelope.errors.push(format!(
-                "unsupported portable secret kind '{}' for id '{}'",
-                secret.kind, secret.id
-            ));
-            continue;
-        }
-
-        // The decrypted portable secret is moved directly into the AI key store's
-        // Zeroizing boundary, matching GPUI import without ever printing the value.
-        key_store
-            .store_provider_key(&secret.id, secret.secret)
-            .map_err(|error| {
-                CliError::new(
-                    "portable_secret_import_failed",
-                    format!("failed to import portable secret '{}': {error}", secret.id),
-                    json,
-                )
-            })?;
-        imported += 1;
-    }
-
-    envelope.imported_portable_secrets = imported;
-    envelope.skipped_portable_secrets = total.saturating_sub(imported);
+    // Retired AI credentials must never be restored from a portable archive.
+    // Dropping the encrypted-secret owner clears the decrypted payload.
+    envelope.portable_secrets.clear();
+    envelope
+        .errors
+        .push("Skipped retired AI provider credentials from the portable archive.".to_string());
+    envelope.imported_portable_secrets = 0;
+    envelope.skipped_portable_secrets = total;
     Ok(())
 }
 

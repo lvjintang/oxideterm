@@ -7330,17 +7330,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oxideterm-acp-adapter"
-version = "2.0.15"
-dependencies = [
- "agent-client-protocol",
- "clap",
- "serde_json",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "oxideterm-acp-host-tools"
 version = "2.0.15"
 dependencies = [
@@ -7454,12 +7443,12 @@ dependencies = [
  "chrono",
  "clap",
  "clap_complete",
- "oxideterm-ai",
  "oxideterm-cloud-sync",
  "oxideterm-connections",
  "oxideterm-forwarding",
  "oxideterm-portable-runtime",
  "oxideterm-quick-commands",
+ "oxideterm-secret-store",
  "oxideterm-settings",
  "oxideterm-ssh",
  "oxideterm-ssh-launch",
@@ -7651,7 +7640,6 @@ dependencies = [
  "objc2-av-foundation",
  "objc2-av-kit",
  "objc2-foundation 0.3.2",
- "oxideterm-acp-adapter",
  "oxideterm-acp-host-tools",
  "oxideterm-ai",
  "oxideterm-ai-tasks",
@@ -7690,6 +7678,7 @@ dependencies = [
  "oxideterm-quick-commands",
  "oxideterm-remote-desktop",
  "oxideterm-render-policy",
+ "oxideterm-secret-store",
  "oxideterm-session-adapter",
  "oxideterm-settings",
  "oxideterm-settings-model",
@@ -7824,7 +7813,6 @@ name = "oxideterm-gpui-settings-view"
 version = "2.0.15"
 dependencies = [
  "gpui",
- "oxideterm-ai",
  "oxideterm-gpui-platform",
  "oxideterm-gpui-ui",
  "oxideterm-i18n",
@@ -7965,7 +7953,6 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "chrono",
- "oxideterm-ai",
  "oxideterm-connection-monitor",
  "oxideterm-connections",
  "oxideterm-forwarding",
@@ -8011,7 +7998,6 @@ dependencies = [
 name = "oxideterm-plugin-registry"
 version = "2.0.15"
 dependencies = [
- "oxideterm-ai",
  "oxideterm-network-proxy",
  "oxideterm-plugin-manifest",
  "oxideterm-plugin-protocol",
@@ -8154,6 +8140,7 @@ dependencies = [
  "keyring",
  "objc2 0.6.4",
  "objc2-foundation 0.3.2",
+ "oxideterm-portable-runtime",
  "zeroize",
 ]
 

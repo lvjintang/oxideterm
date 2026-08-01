@@ -6,10 +6,10 @@ use std::sync::LazyLock;
 use crate::{
     CloseOtherTabs, CloseTab, CommandPalette, Copy, Cut, Find, FontDecrease, FontIncrease,
     FontReset, GoToTab1, GoToTab2, GoToTab3, GoToTab4, GoToTab5, GoToTab6, GoToTab7, GoToTab8,
-    GoToTab9, NewConnection, NewTerminal, NextTab, OpenSettings, PaletteAiSidebar,
-    PaletteBroadcast, PaletteEventLog, Paste, PrevTab, Quit, ShellLauncher, ShowShortcuts,
-    SplitHorizontal, SplitNavLeft, SplitNavRight, SplitVertical, TerminalAiPanel,
-    TerminalClearScreen, TerminalFreeTypeMode, TerminalRecording, ToggleSidebar, ZenMode,
+    GoToTab9, NewConnection, NewTerminal, NextTab, OpenSettings, PaletteBroadcast, PaletteEventLog,
+    Paste, PrevTab, Quit, ShellLauncher, ShowShortcuts, SplitHorizontal, SplitNavLeft,
+    SplitNavRight, SplitVertical, TerminalClearScreen, TerminalFreeTypeMode, TerminalRecording,
+    ToggleSidebar, ZenMode,
 };
 
 const CONTEXT: &str = "Workspace";
@@ -965,7 +965,6 @@ fn push_action_binding(bindings: &mut Vec<KeyBinding>, action_id: &str, combo: &
         "terminal.cut" => push_binding!(Cut),
         "terminal.paste" => push_binding!(Paste),
         "terminal.clearScreen" => push_binding!(TerminalClearScreen),
-        "terminal.aiPanel" => push_binding!(TerminalAiPanel),
         "terminal.recording" => push_binding!(TerminalRecording),
         "terminal.toggleFreeTypeMode" => push_binding!(TerminalFreeTypeMode),
         "terminal.closePanel" => {}
@@ -975,7 +974,6 @@ fn push_action_binding(bindings: &mut Vec<KeyBinding>, action_id: &str, combo: &
         "split.navLeft" => push_binding!(SplitNavLeft),
         "split.navRight" => push_binding!(SplitNavRight),
         "palette.eventLog" => push_binding!(PaletteEventLog),
-        "palette.aiSidebar" => push_binding!(PaletteAiSidebar),
         "palette.broadcast" => push_binding!(PaletteBroadcast),
         "app.navBack" | "app.navForward" => {}
         _ => {}

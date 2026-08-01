@@ -479,34 +479,7 @@ impl WorkspaceApp {
         if !scope.sync_sensitive_credentials {
             return Ok(Vec::new());
         }
-        let provider_ids =
-            oxideterm_ai::provider_views(&self.settings_store.settings().ai.providers)
-                .into_iter()
-                .map(|provider| provider.id)
-                .filter(|provider_id| {
-                    self.ai_entity
-                        .read(cx)
-                        .key_store()
-                        .has_provider_key(provider_id)
-                })
-                .collect::<Vec<_>>();
-        self.ai_entity
-            .read(cx)
-            .key_store()
-            .get_provider_keys(&provider_ids)
-            .map_err(|error| error.to_string())
-            .map(|secrets| {
-                secrets
-                    .into_iter()
-                    .map(|(id, secret)| {
-                        oxideterm_connections::oxide_file::EncryptedPortableSecret {
-                            kind: "ai_provider_key".to_string(),
-                            id,
-                            secret,
-                        }
-                    })
-                    .collect()
-            })
+        Ok(Vec::new())
     }
 
     pub(in crate::workspace) fn start_cloud_sync_pull_preview(&mut self, cx: &mut Context<Self>) {

@@ -36,8 +36,6 @@ pub enum SettingsTab {
     Network,
     Sftp,
     Ide,
-    Ai,
-    Knowledge,
     Keybindings,
     Help,
 }
@@ -162,33 +160,6 @@ pub enum SettingsInput {
     HighlightPattern(usize),
     HighlightForeground(usize),
     HighlightBackground(usize),
-    AiProviderName(usize),
-    AiProviderBaseUrl(usize),
-    AiProviderApiKey(usize),
-    AiAcpAgentDisplayName(usize),
-    AiAcpAgentCommand(usize),
-    AiAcpAgentCwd(usize),
-    AiAcpAgentArgs(usize),
-    AiAcpAgentEnv(usize),
-    AiSystemPrompt,
-    AiMemoryContent,
-    AiToolUseMaxRounds,
-    AiToolUseMaxCallsPerRound,
-    AiModelContextWindow(usize, usize),
-    AiActiveModelMaxResponseTokens,
-    AiEmbeddingModel,
-    AiMcpName,
-    AiMcpCommand,
-    AiMcpArgs,
-    AiMcpUrl,
-    AiMcpAuthHeaderName,
-    AiMcpAuthToken,
-    AiMcpEnvKey(usize),
-    AiMcpEnvValue(usize),
-    AiMcpHeaderKey(usize),
-    AiMcpHeaderValue(usize),
-    KnowledgeCollectionName,
-    KnowledgeDocumentTitle,
     CloudSyncEndpoint,
     CloudSyncNamespace,
     CloudSyncS3Bucket,
@@ -321,8 +292,6 @@ impl SettingsTab {
             Self::Sftp,
             Self::Privilege,
             Self::Ide,
-            Self::Ai,
-            Self::Knowledge,
             Self::Help,
         ]
     }
@@ -338,8 +307,6 @@ impl SettingsTab {
             Self::Network => "network",
             Self::Sftp => "sftp",
             Self::Ide => "ide",
-            Self::Ai => "ai",
-            Self::Knowledge => "knowledge",
             Self::Keybindings => "keybindings",
             Self::Help => "help",
         }
@@ -361,7 +328,7 @@ impl SettingsTab {
                 Self::Sftp,
                 Self::Privilege,
             ],
-            &[Self::Ide, Self::Ai, Self::Knowledge],
+            &[Self::Ide],
             &[Self::Help],
         ]
     }
@@ -377,8 +344,6 @@ impl SettingsTab {
             Self::Network => "settings_view.tabs.network",
             Self::Sftp => "settings_view.tabs.sftp",
             Self::Ide => "settings_view.tabs.ide",
-            Self::Ai => "settings_view.tabs.ai",
-            Self::Knowledge => "settings_view.tabs.knowledge",
             Self::Keybindings => "settings_view.tabs.keybindings",
             Self::Help => "settings_view.tabs.help",
         }
@@ -395,8 +360,6 @@ impl SettingsTab {
             Self::Network => "settings_view.network.title",
             Self::Sftp => "settings_view.sftp.title",
             Self::Ide => "settings_view.ide.title",
-            Self::Ai => "settings_view.ai.title",
-            Self::Knowledge => "settings_view.knowledge.title",
             Self::Keybindings => "settings_view.keybindings.title",
             Self::Help => "settings_view.help.title",
         }
@@ -413,8 +376,6 @@ impl SettingsTab {
             Self::Network => "settings_view.network.description",
             Self::Sftp => "settings_view.sftp.description",
             Self::Ide => "settings_view.ide.description",
-            Self::Ai => "settings_view.ai.description",
-            Self::Knowledge => "settings_view.knowledge.description",
             Self::Keybindings => "settings_view.keybindings.description",
             Self::Help => "settings_view.help.description",
         }
@@ -429,8 +390,6 @@ impl SettingsTab {
             Self::Privilege => SettingsTabIcon::Key,
             Self::Network => SettingsTabIcon::Network,
             Self::Ide => SettingsTabIcon::Code2,
-            Self::Ai => SettingsTabIcon::Sparkles,
-            Self::Knowledge => SettingsTabIcon::BookOpen,
             Self::Keybindings => SettingsTabIcon::Keyboard,
             Self::Help => SettingsTabIcon::HelpCircle,
         }
@@ -445,11 +404,6 @@ impl SettingsInput {
             self,
             Self::TerminalCommandBarFocusHandoff
                 | Self::TerminalCommandSpecsJson
-                | Self::AiSystemPrompt
-                | Self::AiMemoryContent
-                | Self::AiAcpAgentArgs(_)
-                | Self::AiAcpAgentEnv(_)
-                | Self::AiMcpArgs
                 | Self::LocalPrivilegePromptPatterns
                 | Self::ManagedKeyPastePrivateKey
         )
@@ -460,12 +414,7 @@ impl SettingsInput {
         // converts them to concrete units at the view boundary.
         match self {
             Self::TerminalCommandBarFocusHandoff | Self::TerminalCommandSpecsJson => 20.0,
-            Self::AiSystemPrompt | Self::AiMemoryContent => 22.0,
-            Self::AiAcpAgentArgs(_)
-            | Self::AiAcpAgentEnv(_)
-            | Self::AiMcpArgs
-            | Self::LocalPrivilegePromptPatterns
-            | Self::ManagedKeyPastePrivateKey => 20.0,
+            Self::LocalPrivilegePromptPatterns | Self::ManagedKeyPastePrivateKey => 20.0,
             _ => DEFAULT_SETTINGS_TEXTAREA_LINE_HEIGHT,
         }
     }
@@ -513,35 +462,6 @@ impl SettingsInput {
             Self::HighlightPattern(index) => 101 + index as u64 * 4,
             Self::HighlightForeground(index) => 102 + index as u64 * 4,
             Self::HighlightBackground(index) => 103 + index as u64 * 4,
-            Self::AiProviderName(index) => 20_000 + index as u64 * 4,
-            Self::AiProviderBaseUrl(index) => 20_001 + index as u64 * 4,
-            Self::AiProviderApiKey(index) => 20_003 + index as u64 * 4,
-            Self::AiAcpAgentDisplayName(index) => 21_500 + index as u64 * 6,
-            Self::AiAcpAgentCommand(index) => 21_501 + index as u64 * 6,
-            Self::AiAcpAgentCwd(index) => 21_502 + index as u64 * 6,
-            Self::AiAcpAgentArgs(index) => 21_503 + index as u64 * 6,
-            Self::AiAcpAgentEnv(index) => 21_504 + index as u64 * 6,
-            Self::AiSystemPrompt => 22_000,
-            Self::AiMemoryContent => 22_001,
-            Self::AiToolUseMaxRounds => 22_002,
-            Self::AiToolUseMaxCallsPerRound => 22_003,
-            Self::AiModelContextWindow(provider_index, model_index) => {
-                23_000 + provider_index as u64 * 1_000 + model_index as u64
-            }
-            Self::AiActiveModelMaxResponseTokens => 24_000,
-            Self::AiEmbeddingModel => 24_001,
-            Self::AiMcpName => 25_000,
-            Self::AiMcpCommand => 25_001,
-            Self::AiMcpArgs => 25_002,
-            Self::AiMcpUrl => 25_003,
-            Self::AiMcpAuthHeaderName => 25_004,
-            Self::AiMcpAuthToken => 25_005,
-            Self::AiMcpEnvKey(index) => 25_100 + index as u64 * 2,
-            Self::AiMcpEnvValue(index) => 25_101 + index as u64 * 2,
-            Self::AiMcpHeaderKey(index) => 25_300 + index as u64 * 2,
-            Self::AiMcpHeaderValue(index) => 25_301 + index as u64 * 2,
-            Self::KnowledgeCollectionName => 26_000,
-            Self::KnowledgeDocumentTitle => 26_001,
             Self::CloudSyncEndpoint => 27_000,
             Self::CloudSyncNamespace => 27_001,
             Self::CloudSyncS3Bucket => 27_002,
@@ -583,9 +503,7 @@ impl SettingsInput {
     pub fn is_secret(self) -> bool {
         matches!(
             self,
-            Self::AiProviderApiKey(_)
-                | Self::AiMcpAuthToken
-                | Self::CloudSyncToken
+            Self::CloudSyncToken
                 | Self::CloudSyncGitToken
                 | Self::CloudSyncBasicUsername
                 | Self::CloudSyncBasicPassword
@@ -604,22 +522,6 @@ impl SettingsInput {
                 | Self::ManagedKeyPastePrivateKey
                 | Self::ManagedKeyPastePassphrase
                 | Self::NetworkProxyPassword
-        )
-    }
-
-    pub fn is_ai_mcp(self) -> bool {
-        matches!(
-            self,
-            Self::AiMcpName
-                | Self::AiMcpCommand
-                | Self::AiMcpArgs
-                | Self::AiMcpUrl
-                | Self::AiMcpAuthHeaderName
-                | Self::AiMcpAuthToken
-                | Self::AiMcpEnvKey(_)
-                | Self::AiMcpEnvValue(_)
-                | Self::AiMcpHeaderKey(_)
-                | Self::AiMcpHeaderValue(_)
         )
     }
 }
@@ -672,7 +574,6 @@ mod tests {
 
     #[test]
     fn secret_inputs_are_categorized_in_the_model_layer() {
-        assert!(SettingsInput::AiProviderApiKey(0).is_secret());
         assert!(SettingsInput::CloudSyncSecretAccessKey.is_secret());
         assert!(SettingsInput::PortableCurrentPassword.is_secret());
         assert!(SettingsInput::PortableNewPassword.is_secret());
@@ -685,17 +586,13 @@ mod tests {
     }
 
     #[test]
-    fn ai_mcp_inputs_are_categorized_in_the_model_layer() {
-        assert!(SettingsInput::AiMcpEnvValue(0).is_ai_mcp());
-        assert!(!SettingsInput::AiSystemPrompt.is_ai_mcp());
-    }
-
-    #[test]
     fn multiline_input_metadata_lives_with_settings_input_identity() {
-        assert!(SettingsInput::AiSystemPrompt.accepts_newline());
         assert!(SettingsInput::LocalPrivilegePromptPatterns.accepts_newline());
         assert!(!SettingsInput::TerminalFontSize.accepts_newline());
-        assert_eq!(SettingsInput::AiMemoryContent.textarea_line_height(), 22.0);
+        assert_eq!(
+            SettingsInput::LocalPrivilegePromptPatterns.textarea_line_height(),
+            20.0
+        );
     }
 
     #[test]
@@ -715,7 +612,7 @@ mod tests {
                     SettingsTab::Sftp,
                     SettingsTab::Privilege,
                 ][..],
-                &[SettingsTab::Ide, SettingsTab::Ai, SettingsTab::Knowledge][..],
+                &[SettingsTab::Ide][..],
                 &[SettingsTab::Help][..],
             ]
         );
